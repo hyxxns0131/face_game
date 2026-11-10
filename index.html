@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>FACE FRIENDS</title>
+  <title>크리스마스 기념 눈싸움 하자!</title>
   <link rel="stylesheet" href="shared/ui.css" />
   <link rel="stylesheet" href="home.css" />
 </head>
@@ -16,6 +16,12 @@
     <button class="icon-btn trophy" id="btn-trophy" title="기록"><img class="px" src="shared/assets/trophy.png" alt="기록" /></button>
     <button class="icon-btn gear" id="btn-gear" title="설정"><img class="px" src="shared/assets/gear.png" alt="설정" /></button>
 
+    <!-- 크리스마스 타이틀 -->
+    <div class="xmas-title">
+      <span class="ny">★ NEW YORK · MERRY CHRISTMAS ★</span>
+      <h1>크리스마스 기념<br /><em>눈싸움 하자!</em></h1>
+    </div>
+
     <!-- 가운데: 캐릭터 선택 -->
     <div class="carousel" id="carousel">
       <button class="slot left" data-slot="left"><img class="item px" alt="" /><img class="char px" alt="" /></button>
@@ -23,9 +29,9 @@
       <button class="slot right" data-slot="right"><img class="item px" alt="" /><img class="char px" alt="" /></button>
     </div>
 
-    <button class="icon-btn arrow left" id="btn-prev" title="이전 캐릭터"><img class="px" src="shared/assets/arrow_l.png" alt="←" /></button>
+    <button class="icon-btn arrow left" id="btn-prev" title="이전 캐릭터"><img class="px" src="shared/assets/arrow_l_w.png" alt="←" /></button>
     <div class="char-name" id="char-name">LILY</div>
-    <button class="icon-btn arrow right" id="btn-next" title="다음 캐릭터"><img class="px" src="shared/assets/arrow_r.png" alt="→" /></button>
+    <button class="icon-btn arrow right" id="btn-next" title="다음 캐릭터"><img class="px" src="shared/assets/arrow_r_w.png" alt="→" /></button>
 
     <div class="players" id="players">
       <button class="ptab" data-p="p1"><span class="tag">P1</span><span class="nm"></span></button>
@@ -33,7 +39,7 @@
       <button class="ptab" data-p="p2"><span class="tag">P2</span><span class="nm"></span></button>
     </div>
 
-    <button class="icon-btn start-btn" id="btn-start"><img class="px" src="shared/assets/start.png" alt="START" /></button>
+    <button class="icon-btn start-btn" id="btn-start"><img class="px" src="shared/assets/start_xmas.png" alt="START" /></button>
 
     <!-- 하단: 편지(게임 방법) / 지갑(코인) -->
     <button class="icon-btn letter" id="btn-letter" title="게임 방법"><img class="px" src="shared/assets/letter.png" alt="게임 방법" /></button>
@@ -49,15 +55,15 @@
   <div class="modal-back" id="m-games">
     <div class="modal pixel-box">
       <button class="close" data-close>✕</button>
-      <h2>🎮 게임 선택</h2>
+      <h2>🎄 게임 선택</h2>
       <p class="matchup" id="matchup"></p>
       <a class="game-card pixel-box" href="pokerface/">
-        <span class="g-emoji">😐</span>
-        <span class="g-text"><b>포커페이스 챌린지</b><small>웃음·깜빡임 참기 1:1 · 먼저 하트를 다 잃으면 패배</small></span>
+        <span class="g-emoji">🎅</span>
+        <span class="g-text"><b>산타 포커페이스</b><small>웃음·깜빡임 참기 1:1 · 먼저 하트를 다 잃으면 패배</small></span>
       </a>
       <a class="game-card pixel-box" href="snowball/">
         <span class="g-emoji">☃️</span>
-        <span class="g-text"><b>눈덩이 대작전</b><small>눈 받아서 굴려서 던지기 1:1 · 맞으면 하트 -1</small></span>
+        <span class="g-text"><b>크리스마스 눈싸움</b><small>눈 받아서 굴려서 던지기 1:1 · 맞으면 하트 -1</small></span>
       </a>
     </div>
   </div>
@@ -71,11 +77,11 @@
       <div class="pick" data-key="hearts"><button data-v="1">♥ 1</button><button data-v="3">♥ 3</button><button data-v="5">♥ 5</button></div>
       <div class="row-label">효과음</div>
       <div class="pick" data-key="sound"><button data-v="true">켜기</button><button data-v="false">끄기</button></div>
-      <div class="row-label">😐 포커페이스 모드</div>
+      <div class="row-label">🎅 포커페이스 모드</div>
       <div class="pick" data-key="pfMode"><button data-v="mix">혼합</button><button data-v="smile">웃음 참기</button><button data-v="blink">눈싸움</button></div>
-      <div class="row-label">😐 포커페이스 난이도</div>
+      <div class="row-label">🎅 포커페이스 난이도</div>
       <div class="pick" data-key="pfDiff"><button data-v="easy">쉬움</button><button data-v="normal">보통</button><button data-v="hard">어려움</button></div>
-      <div class="row-label">☃️ 눈덩이 라운드 시간</div>
+      <div class="row-label">☃️ 눈싸움 라운드 시간</div>
       <div class="pick" data-key="snowTime"><button data-v="45">45초</button><button data-v="60">60초</button><button data-v="90">90초</button></div>
       <div class="row-label">기록</div>
       <button class="pixel-btn white small" id="btn-reset">기록·코인 초기화</button>
@@ -99,14 +105,14 @@
       <button class="close" data-close>✕</button>
       <h2><img class="px" src="shared/assets/letter.png" alt="" /> 게임 방법</h2>
       <p>친구랑 <b>카메라 앞에 나란히</b> 서거나 앉아요. 화면 <b>왼쪽이 P1</b>, <b>오른쪽이 P2</b>예요.</p>
-      <h3>😐 포커페이스 챌린지</h3>
+      <h3>🎅 산타 포커페이스</h3>
       <ul>
         <li>양쪽에 각자 얼굴이 크게 떠요</li>
         <li>웃거나 눈을 깜빡이면 <b>하트 -1</b></li>
         <li>방해 요소(이모지, 아재개그, 얼굴 필터, 효과음)가 점점 세져요</li>
         <li>하트를 먼저 다 잃는 사람이 패배!</li>
       </ul>
-      <h3>☃️ 눈덩이 대작전</h3>
+      <h3>☃️ 크리스마스 눈싸움</h3>
       <ul>
         <li>❄️ 내리는 눈에 손을 대서 받기</li>
         <li>🌀 손을 빙글빙글 돌려 눈덩이 키우기</li>
@@ -134,6 +140,7 @@
       });
     }
   </script>
+  <script type="module" src="shared/xmas.js"></script>
   <script type="module" src="home.js"></script>
 </body>
 </html>

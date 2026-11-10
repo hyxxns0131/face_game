@@ -240,8 +240,8 @@ function msg(html, dim = false) {
 const C1 = charOf(prof.p1), C2 = charOf(prof.p2);
 function makePlayers() {
   players = [
-    new Player(C1.name, "#ff3f78", "L", C1),
-    settings.mode === "solo" ? makeBot() : new Player(C2.name, "#8b6cff", "R", C2),
+    new Player(C1.name, "#ff4a4a", "L", C1),
+    settings.mode === "solo" ? makeBot() : new Player(C2.name, "#2ecc71", "R", C2),
   ];
 }
 
@@ -441,7 +441,7 @@ function draw(now, poses) {
   ctx.scale(-1, 1);
   ctx.drawImage(video, 0, 0, W, H);
   ctx.restore();
-  ctx.fillStyle = "rgba(10, 30, 60, 0.28)";
+  ctx.fillStyle = "rgba(8, 12, 48, 0.32)"; // 밤 분위기
   ctx.fillRect(0, 0, W, H);
 
   if (settings.mode === "duo") {

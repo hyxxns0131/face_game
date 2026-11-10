@@ -15,6 +15,31 @@ body { display: flex; justify-content: center; align-items: center; min-height: 
 .hearts-btn .hearts { gap: 1.2cqw; }
 .hearts-btn .hearts img.heart { height: 9.6cqw; width: auto; }
 .hearts-btn .hearts.many img.heart { height: 7cqw; }
+.xmas-title {
+  left: 0;
+  right: 0;
+  top: 9.6%;
+  text-align: center;
+  pointer-events: none;
+}
+.xmas-title .ny {
+  display: inline-block;
+  font-size: 2.6cqw;
+  font-weight: 700;
+  color: var(--gold);
+  letter-spacing: .4cqw;
+  text-shadow: .4cqw .4cqw 0 var(--line);
+  animation: blink 1.4s steps(2) infinite;
+}
+.xmas-title h1 {
+  margin: 1cqw 0 0;
+  font-size: 5.6cqw;
+  line-height: 1.25;
+  color: #fff;
+  text-shadow: .6cqw .6cqw 0 var(--pink), 1.2cqw 1.2cqw 0 var(--line);
+}
+.xmas-title h1 em { font-style: normal; font-size: 8cqw; color: #fff; text-shadow: .7cqw .7cqw 0 var(--green), 1.4cqw 1.4cqw 0 var(--line); }
+
 .trophy { left: 66%; top: 1.6%; width: 12.6%; }
 .gear { left: 83.2%; top: 1.4%; width: 13.6%; }
 
@@ -33,11 +58,11 @@ body { display: flex; justify-content: center; align-items: center; min-height: 
 }
 .slot .char { width: 100%; filter: drop-shadow(0 1cqw 0 rgba(0, 0, 0, .12)); }
 .slot .item { position: absolute; animation: bob 1.2s steps(2) infinite; }
-.slot.center { left: 34.7%; top: 26.4%; width: 30.4%; }
-.slot.center .item { bottom: calc(100% + 5%); }
-.slot.left { left: 4.5%; top: 36.4%; width: 20.5%; }
+.slot.center { left: 34.7%; top: 28%; width: 30.4%; }
+.slot.center .item { bottom: calc(100% + 1%); }
+.slot.left { left: 4.5%; top: 37.4%; width: 20.5%; }
 .slot.left .item { bottom: calc(100% + 4%); animation-delay: .4s; }
-.slot.right { left: 75.4%; top: 36%; width: 19.1%; }
+.slot.right { left: 75.4%; top: 37%; width: 19.1%; }
 .slot.right .item { bottom: calc(100% + 4%); animation-delay: .8s; }
 .slot.left:hover .char, .slot.right:hover .char { transform: translateY(-1.5cqw); }
 .slot.center .char { animation: idle 1.6s steps(2) infinite; }
@@ -54,7 +79,8 @@ body { display: flex; justify-content: center; align-items: center; min-height: 
   font-weight: 700;
   font-size: 6.4cqw;
   letter-spacing: 1.6cqw;
-  color: #000;
+  color: #fff;
+  text-shadow: .6cqw .6cqw 0 var(--pink-dark);
 }
 
 /* P1 / P2 선택 탭 */
@@ -85,6 +111,7 @@ body { display: flex; justify-content: center; align-items: center; min-height: 
 .ptab[data-p="p1"] .tag { background: var(--p1); }
 .ptab[data-p="p2"] .tag { background: var(--p2); }
 .ptab.on { background: #fff; transform: translateY(-.6cqw); }
+.ptab .tag { text-shadow: .3cqw .3cqw 0 rgba(0,0,0,.35); }
 .ptab.on::after { content: "◀"; font-size: 2.6cqw; color: var(--pink); animation: blink .6s steps(2) infinite; }
 .ptab[data-p="p2"].on::after { order: -1; content: "▶"; }
 .players .vs { font-weight: 700; font-size: 4.4cqw; color: #fff; text-shadow: .5cqw .5cqw 0 var(--line); }

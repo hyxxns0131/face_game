@@ -13,43 +13,59 @@
 }
 
 :root {
-  --sky-top: #0b8de3;
-  --sky-bottom: #86cdf3;
+  /* 🎄 뉴욕 크리스마스 테마 */
   --ink: #1b1530;
-  --line: #2a1d3d;
-  --pink: #ff3f78;
-  --pink-dark: #5c1f3c;
-  --pink-light: #ff7aa5;
+  --line: #1a1033;
+  --pink: #e3262f;        /* 크리스마스 빨강 (버튼·강조) */
+  --pink-dark: #5a0b14;
+  --pink-light: #ff6b6b;
+  --green: #1f9d55;
   --white: #ffffff;
   --paper: #fff8ec;
   --gold: #ffd23f;
-  --p1: #ff3f78;
-  --p2: #8b6cff;
+  --p1: #ff4a4a;          /* P1 = 빨강 */
+  --p2: #2ecc71;          /* P2 = 초록 */
   --px: 4px; /* 픽셀 테두리 굵기 */
 }
 
 * { box-sizing: border-box; }
 html, body { height: 100%; }
+html { background: #0b1030; }
 
 body {
   margin: 0;
   font-family: "Galmuri11", "Malgun Gothic", sans-serif;
   color: var(--ink);
-  background: linear-gradient(180deg, var(--sky-top) 0%, #2ea3ea 45%, var(--sky-bottom) 100%) fixed;
+  background: transparent; /* 밤하늘·스카이라인은 shared/xmas.js 캔버스가 그림 */
   -webkit-font-smoothing: none;
   overflow-x: hidden;
 }
-/* 하늘 위 은은한 빛 */
-body::before {
-  content: "";
+
+/* 꼬마전구 줄 (shared/xmas.js가 추가) */
+.xmas-lights {
   position: fixed;
-  inset: 0;
-  background:
-    radial-gradient(ellipse 60% 25% at 30% 70%, rgba(255, 255, 255, .22), transparent 70%),
-    radial-gradient(ellipse 50% 20% at 80% 85%, rgba(255, 255, 255, .18), transparent 70%);
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 26px;
+  display: flex;
+  justify-content: space-around;
   pointer-events: none;
-  z-index: -1;
+  z-index: 30;
+  border-top: 3px solid #0f3d1f;
 }
+.xmas-lights i {
+  width: 10px;
+  height: 14px;
+  margin-top: 4px;
+  background: var(--c);
+  box-shadow: 0 0 10px 2px var(--c);
+  clip-path: polygon(30% 0, 70% 0, 70% 20%, 100% 40%, 100% 100%, 0 100%, 0 40%, 30% 20%);
+  animation: bulb 1.2s steps(2) infinite;
+  animation-delay: var(--d);
+}
+.xmas-lights i:nth-child(even) { margin-top: 9px; }
+@keyframes bulb { 50% { opacity: .35; box-shadow: none; } }
 
 img.px, .px img { image-rendering: pixelated; image-rendering: crisp-edges; user-select: none; -webkit-user-drag: none; }
 
@@ -93,12 +109,12 @@ button { font-family: inherit; }
     0 4px 0 0 var(--pink-dark),
     -4px 0 0 0 var(--pink-dark),
     4px 0 0 0 var(--pink-dark),
-    inset 0 -6px 0 0 #e0245d,
+    inset 0 -6px 0 0 #b3141c,
     inset 0 4px 0 0 var(--pink-light);
   margin: 4px;
   transition: transform .06s steps(2);
 }
-.pixel-btn:hover { filter: brightness(1.06); }
+.pixel-btn:hover { filter: brightness(1.08); }
 .pixel-btn:active { transform: translateY(3px); }
 .pixel-btn.white {
   color: var(--ink);
@@ -212,7 +228,7 @@ button { font-family: inherit; }
   grid-template-columns: auto 1fr auto 1fr auto;
   align-items: center;
   gap: 12px;
-  padding: 12px 16px;
+  padding: 30px 16px 10px;
   max-width: 1180px;
   margin: 0 auto;
 }

@@ -10,8 +10,8 @@
 #cv { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 
 .pl .score { font-weight: 700; color: var(--gold); text-shadow: 2px 2px 0 var(--line); font-size: 15px; }
-#pl1 .name { color: #ffd0de; }
-#pl2 .name { color: #ddd3ff; }
+#pl1 .name { color: #ffd0d0; }
+#pl2 .name { color: #c9f7da; }
 
 .foot-hint { text-align: center; color: #fff; font-size: 13px; text-shadow: 1px 1px 0 var(--line); margin: 14px 0; }
 
