@@ -477,7 +477,7 @@ async function startGame(name, settings) {
   lobby(null);
   $("#result").classList.remove("open");
   $("#mode-chip").textContent = `${GAMES[name].emoji} ${GAMES[name].name}`;
-  $("#foot-hint").textContent = name === "snowball" ? "💡 60초 점수 대결! 눈을 받아 빙글빙글 크게 굴릴수록 맞혔을 때 점수가 커요 (최대 10점)" : "💡 정면을 보고 표정을 꾹 참아요";
+  $("#foot-hint").textContent = name === "snowball" ? "💡 60초 점수 대결! 크게 굴릴수록 점수 UP · 손 위치로 상대 화면의 🎯조준점을 움직여 얼굴에 맞추고(LOCK ON) 상대 쪽으로 휙! (스페이스바도 OK)" : "💡 정면을 보고 표정을 꾹 참아요";
   const gauges = $("#gauges");
   gauges.hidden = name !== "pokerface";
   gauges.className = `gauges on-${room.mySide}`;

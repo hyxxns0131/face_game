@@ -14,7 +14,8 @@ const CFG = {
   catchPad: 26,
   minR: 16,
   maxR: 60,
-  throwSpeed: 1.0,    // 던지기: 상대 쪽으로 이 속도(패널너비/초) 이상 휘두르기
+  throwSpeed: 0.8,    // 던지기: 상대 쪽으로 이 속도(패널너비/초) 이상 휘두르기
+  lockRange: 0.14,    // 조준점이 상대 얼굴에서 이 거리(패널너비 비율) 안이면 자동 조준(LOCK ON)
   cooldown: 700,
   hitSlack: 0.7,
 };
@@ -44,6 +45,7 @@ export async function startSnowball(ctx) {
     score: 0, hits: 0, throws: 0, dodges: 0, maxR: 0, bestHit: 0,
     present: false, head: null, headR: 40, hand: null, handIdx: null, hist: [],
     r: 0, prevAng: null, rollAcc: 0, lastAbs: 0, cool: 0,
+    aim: null, lock: false, // 조준점 (상대 패널 좌표)
   };
   const opp = { score: 0, head: { x: PW / 2, y: PH * 0.4 }, headR: 40, present: true };
   let flakes = [], shots = [], texts = [], puffs = [], splats = [];
@@ -58,6 +60,14 @@ export async function startSnowball(ctx) {
   hud.clock(String(ROUND_SEC));
 
   // ───── 메시지 ─────
+  const onKey = (e) => {
+    if (e.code === "Space" && state === "play" && me.hand && me.r >= CFG.minR && me.cool <= 0) {
+      e.preventDefault();
+      throwBall(performance.now());
+    }
+  };
+  document.addEventListener("keydown", onKey);
+  offs.push(() => document.removeEventListener("keydown", onKey));
   offs.push(
     link.on("sb:ready", () => {
       oppReady = true;
@@ -156,9 +166,31 @@ export async function startSnowball(ctx) {
     me.r = Math.min(CFG.maxR, Math.sqrt(me.r * me.r + amount));
   }
 
+  // 🎯 조준: 내 패널에서 손이 있는 위치 = 상대 패널의 조준점 위치
+  //  (손을 위로 올리면 상대 화면 위쪽, 아래로 내리면 아래쪽을 노려요)
+  //  휘두르는 동안(손이 빠를 때)은 조준점이 고정돼서, 휘두르기 직전에 맞춘 곳으로 날아가요.
+  function updateAim() {
+    if (!me.hand) return;
+    const n = me.hist.length;
+    const sp = n >= 2 ? dist(me.hist[n - 1], me.hist[0]) / Math.max(0.001, (me.hist[n - 1].t - me.hist[0].t) / 1000) : 0;
+    const clamp01 = (v) => Math.max(0.04, Math.min(0.96, v));
+    // 손이 화면 가장자리까지 안 가도 상대 화면 전체를 노릴 수 있게 살짝 넓혀서 매핑
+    const nx = clamp01((me.hand.x / PW - 0.15) / 0.7);
+    const ny = clamp01((me.hand.y / PH - 0.1) / 0.65);
+    // 상대가 나와 마주 보는 쪽에 있으니 가로는 그대로(내 손이 오른쪽이면 상대 화면 오른쪽)
+    const target = { x: nx * PW, y: ny * PH };
+    if (!me.aim) me.aim = target;
+    if (sp < 0.5 * PW) {
+      me.aim.x += (target.x - me.aim.x) * 0.35;
+      me.aim.y += (target.y - me.aim.y) * 0.35;
+    }
+    me.lock = opp.present && opp.head && dist(me.aim, opp.head) < CFG.lockRange * PW;
+  }
+
   function stepMe(dt, now) {
     me.cool -= dt * 1000;
     if (!me.hand) { me.prevAng = null; return; }
+    updateAim();
     const reach = Math.max(me.r, 10) + CFG.catchPad;
     for (const f of flakes) {
       if (!f.dead && dist(f, me.hand) < reach + f.r) {
@@ -195,7 +227,8 @@ export async function startSnowball(ctx) {
   function throwBall(now) {
     const id = `${iAmHost ? "h" : "g"}${++shotId}`;
     const from = { ...me.hand };
-    const to = { ...opp.head };
+    // 조준점으로 던짐 (LOCK ON 이면 상대 얼굴 정중앙)
+    const to = me.lock ? { ...opp.head } : me.aim ? { ...me.aim } : { ...opp.head };
     const dur = (0.75 + me.r / 90) * 1000 + 150; // 클수록 느리게 (+ 네트워크 여유)
     shots.push({ id, mine: true, from, to, r: me.r, t0: now, dur, done: false });
     link.send("sb:throw", { id, from: { x: from.x / PW, y: from.y / PH }, to: { x: to.x / PW, y: to.y / PH }, r: me.r / PW, dur });
@@ -348,7 +381,7 @@ export async function startSnowball(ctx) {
         if (state === "play") {
           g.font = `700 16px "Galmuri11", sans-serif`;
           g.textAlign = "center";
-          const t = `⭐${pointsFor(me.r)}점 ${dir > 0 ? "휙! →" : "← 휙!"}`;
+          const t = `⭐${pointsFor(me.r)}점 · 손 높이로 조준 ${dir > 0 ? "→ 휙!" : "휙! ←"}`;
           g.lineWidth = 4;
           g.strokeStyle = "rgba(0,0,0,.6)";
           g.strokeText(ready ? t : `⭐${pointsFor(me.r)}점 · 더 키워요!`, x, y - me.r - 14);
@@ -383,6 +416,53 @@ export async function startSnowball(ctx) {
     const R = { me: ctx.panelRect("me"), opp: ctx.panelRect("opp") };
     const k = R.me.w / PW; // 패널 1px → 화면 px
     const P = (side, p) => ({ x: R[side].x + (p.x / PW) * R[side].w, y: R[side].y + (p.y / PH) * R[side].h });
+
+    // 🎯 내 조준점 + 날아갈 궤적 미리보기 (상대 화면 위)
+    if (state === "play" && me.hand && me.r > 0 && me.aim) {
+      const ready = me.r >= CFG.minR;
+      const a = P("me", me.hand);
+      const b = P("opp", me.lock ? opp.head : me.aim);
+      const col = me.lock ? "#ff3b3b" : ctx.me.color;
+      og.save();
+      og.globalAlpha = ready ? 1 : 0.4;
+      // 점선 포물선
+      og.setLineDash([6, 8]);
+      og.lineDashOffset = -now / 40;
+      og.strokeStyle = "rgba(255,255,255,.85)";
+      og.lineWidth = 3;
+      og.beginPath();
+      for (let i = 0; i <= 24; i++) {
+        const t = i / 24;
+        const x = lerp(a.x, b.x, t), y = lerp(a.y, b.y, t) - Math.sin(Math.PI * t) * R.me.h * 0.25;
+        i ? og.lineTo(x, y) : og.moveTo(x, y);
+      }
+      og.stroke();
+      og.setLineDash([]);
+      // 조준점
+      const rr = (me.r * 1.3 + opp.headR * CFG.hitSlack) * k;
+      og.strokeStyle = col;
+      og.lineWidth = 4;
+      og.beginPath();
+      og.arc(b.x, b.y, rr, 0, Math.PI * 2);
+      og.stroke();
+      og.beginPath();
+      og.moveTo(b.x - rr * 1.3, b.y); og.lineTo(b.x - rr * 0.5, b.y);
+      og.moveTo(b.x + rr * 0.5, b.y); og.lineTo(b.x + rr * 1.3, b.y);
+      og.moveTo(b.x, b.y - rr * 1.3); og.lineTo(b.x, b.y - rr * 0.5);
+      og.moveTo(b.x, b.y + rr * 0.5); og.lineTo(b.x, b.y + rr * 1.3);
+      og.stroke();
+      og.fillStyle = col;
+      og.fillRect(b.x - 3, b.y - 3, 6, 6);
+      og.font = `700 18px "Galmuri11", sans-serif`;
+      og.textAlign = "center";
+      og.lineWidth = 4;
+      og.strokeStyle = "rgba(0,0,0,.7)";
+      const label = !ready ? "더 키워야 던질 수 있어요" : me.lock ? "🎯 LOCK ON! 지금 휙!" : "🎯 조준 중";
+      og.strokeText(label, b.x, b.y - rr * 1.3 - 12);
+      og.fillStyle = "#fff";
+      og.fillText(label, b.x, b.y - rr * 1.3 - 12);
+      og.restore();
+    }
 
     for (const s of shots) {
       const fromSide = s.mine ? "me" : "opp", toSide = s.mine ? "opp" : "me";
