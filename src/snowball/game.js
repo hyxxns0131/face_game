@@ -1,4 +1,5 @@
-// ☃️ 크리스마스 눈싸움 — 온라인 1:1 / AI 공통
+// ☃️ 크리스마스 눈싸움 — 온라인 1:1 / AI 공통 · 60초 점수제
+// 눈덩이를 크게 굴려서 맞힐수록 점수가 커요 (1~10점). 60초 뒤 점수가 높은 사람이 승리!
 // 내 패널: 내 카메라 + 내리는 눈 + 내 손의 눈덩이 (이 화면이 친구에게 영상으로 감)
 // 던진 눈덩이는 두 패널 위 오버레이에 그려지고, 맞았는지는 "맞는 사람" 쪽에서 판정해요 (내 얼굴은 내가 제일 정확히 아니까).
 import { initPose, detectPoses } from "./pose.js";
@@ -21,7 +22,9 @@ const CFG = {
 const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 const lerp = (a, b, t) => a + (b - a) * t;
 const rand = (a, b) => a + Math.random() * (b - a);
-export const pointsFor = (r) => (r < 30 ? 1 : r < 48 ? 2 : 3); // r: 패널 640px 기준
+export const ROUND_SEC = 60;
+// 눈덩이 크기 → 점수: 가장 작은 눈덩이(반지름 16) 1점 ~ 최대 크기(반지름 60) 10점
+export const pointsFor = (r) => Math.max(1, Math.min(10, Math.round(((r - 16) / (60 - 16)) * 9) + 1));
 
 export async function startSnowball(ctx) {
   const { link, iAmHost, settings, video, myCanvas, sfx, hud } = ctx;
@@ -38,21 +41,21 @@ export async function startSnowball(ctx) {
   // 내 패널이 왼쪽이면 오른쪽(+x)으로 던짐
   const dir = ctx.mySide === "left" ? 1 : -1;
   const me = {
-    hearts: settings.hearts, score: 0, hits: 0, throws: 0, dodges: 0, maxR: 0,
+    score: 0, hits: 0, throws: 0, dodges: 0, maxR: 0, bestHit: 0,
     present: false, head: null, headR: 40, hand: null, handIdx: null, hist: [],
     r: 0, prevAng: null, rollAcc: 0, lastAbs: 0, cool: 0,
   };
-  const opp = { hearts: settings.hearts, score: 0, head: { x: PW / 2, y: PH * 0.4 }, headR: 40, present: true };
+  const opp = { score: 0, head: { x: PW / 2, y: PH * 0.4 }, headR: 40, present: true };
   let flakes = [], shots = [], texts = [], puffs = [], splats = [];
   let flakeAcc = 0, lastNow = performance.now(), lastSend = 0, shotId = 0;
   let state = "ready"; // ready → countdown → play → over
   let readySince = null, sentReady = false, oppReady = false, phaseStart = 0, playStart = 0, lastCount = null;
 
-  hud.hearts("me", me.hearts);
-  hud.hearts("opp", opp.hearts);
+  hud.hearts("me", null);
+  hud.hearts("opp", null);
   hud.score("me", 0);
   hud.score("opp", 0);
-  hud.clock(String(settings.snowTime));
+  hud.clock(String(ROUND_SEC));
 
   // ───── 메시지 ─────
   offs.push(
@@ -75,13 +78,14 @@ export async function startSnowball(ctx) {
       // 내가 던진 눈덩이 결과
       const s = shots.find((x) => x.id === m.id && x.mine);
       const at = s ? s.to : opp.head;
-      opp.hearts = m.hearts;
-      hud.hearts("opp", m.hearts, m.hit);
       if (m.hit) {
         me.score += m.pts;
         me.hits++;
-        hud.score("me", me.score);
-        texts.push({ side: "opp", text: `명중! +${m.pts}`, x: at.x, y: at.y - 40, color: "#ffd23f", t0: performance.now(), big: true });
+        me.bestHit = Math.max(me.bestHit, m.pts);
+        hud.score("me", me.score, true);
+        const huge = m.pts >= 8;
+        texts.push({ side: "opp", text: huge ? `💥 대형 명중! +${m.pts}` : `명중! +${m.pts}`, x: at.x, y: at.y - 40, color: huge ? "#ff6b6b" : "#ffd23f", t0: performance.now(), big: true, huge });
+        if (huge) sfx.fanfare(true);
         splats.push({ side: "opp", at: { ...at }, r: (s?.r || 30) * 1.3, t0: performance.now(), blobs: blobs((s?.r || 30) * 1.3) });
         ctx.flash("opp", "");
         sfx.honk();
@@ -91,7 +95,6 @@ export async function startSnowball(ctx) {
       }
       if (s) s.resolved = true;
     }),
-    link.on("sb:dead", () => iAmHost && finish("win")),
     link.on("sb:end", (m) => !iAmHost && finish(m.winner === "guest" ? "win" : m.winner === "host" ? "lose" : "draw"))
   );
 
@@ -116,7 +119,9 @@ export async function startSnowball(ctx) {
         ctx.onEnd({
           result,
           detail: `⭐${me.score}:${opp.score}`,
-          lines: [`나: ♥${me.hearts} · ⭐${me.score} · 명중 ${me.hits}/${me.throws} · 피함 ${me.dodges}`, `최대 눈덩이 ${me.maxR ? Math.round(me.maxR * 2) + "cm" : "-"}`],
+          myScore: me.score,
+          oppScore: opp.score,
+          lines: [`점수 ${me.score} : ${opp.score}`, `명중 ${me.hits}/${me.throws} · 피함 ${me.dodges} · 최고 한 방 ${me.bestHit ? "+" + me.bestHit : "-"}`, `최대 눈덩이 ${me.maxR ? Math.round(me.maxR * 2) + "cm (" + pointsFor(me.maxR) + "점짜리)" : "-"}`],
         }),
       1200
     );
@@ -206,12 +211,10 @@ export async function startSnowball(ctx) {
     const hit = !me.present || !me.head || dist(me.head, s.to) < endR + me.headR * CFG.hitSlack;
     const pts = pointsFor(s.r);
     if (hit) {
-      me.hearts = Math.max(0, me.hearts - 1);
       opp.score += pts;
-      hud.hearts("me", me.hearts, true);
-      hud.score("opp", opp.score);
+      hud.score("opp", opp.score, true);
       splats.push({ side: "me", follow: true, r: endR, t0: now, blobs: blobs(endR) });
-      texts.push({ side: "me", text: "으악! -1♥", x: s.to.x, y: s.to.y - 40, color: "#ff6b6b", t0: now, big: true });
+      texts.push({ side: "me", text: `으악! 상대 +${pts}`, x: s.to.x, y: s.to.y - 40, color: "#ff6b6b", t0: now, big: true });
       ctx.flash("me", "");
       sfx.honk();
     } else {
@@ -220,11 +223,7 @@ export async function startSnowball(ctx) {
       texts.push({ side: "me", text: "회피! 😎", x: s.to.x, y: s.to.y - 40, color: "#e0f2fe", t0: now });
       sfx.boing();
     }
-    link.send("sb:result", { id: s.id, hit, pts, hearts: me.hearts });
-    if (me.hearts <= 0) {
-      if (iAmHost) finish("lose");
-      else link.send("sb:dead");
-    }
+    link.send("sb:result", { id: s.id, hit, pts });
   }
 
   function blobs(r) {
@@ -294,11 +293,11 @@ export async function startSnowball(ctx) {
         }
       }
       shots = shots.filter((s) => !s.done || (s.mine && !s.resolved && now - s.t0 < s.dur + 3000));
-      const left = settings.snowTime - (now - playStart) / 1000;
+      const left = ROUND_SEC - (now - playStart) / 1000;
       hud.clock(String(Math.max(0, Math.ceil(left))), left <= 10);
       ctx.msg(me.present ? "" : "🙈 화면 밖으로 나가면 맞은 걸로 쳐요!");
       if (left <= 0 && iAmHost && state === "play") {
-        const cmp = me.hearts - opp.hearts || me.score - opp.score;
+        const cmp = me.score - opp.score;
         finish(cmp > 0 ? "win" : cmp < 0 ? "lose" : "draw");
       }
     }
@@ -346,15 +345,15 @@ export async function startSnowball(ctx) {
         g.beginPath();
         g.arc(x, y, me.r + 4, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * Math.min(1, me.r / CFG.maxR));
         g.stroke();
-        if (ready && state === "play") {
+        if (state === "play") {
           g.font = `700 16px "Galmuri11", sans-serif`;
           g.textAlign = "center";
-          const t = `${"⭐".repeat(pointsFor(me.r))} ${dir > 0 ? "휙! →" : "← 휙!"}`;
+          const t = `⭐${pointsFor(me.r)}점 ${dir > 0 ? "휙! →" : "← 휙!"}`;
           g.lineWidth = 4;
           g.strokeStyle = "rgba(0,0,0,.6)";
-          g.strokeText(t, x, y - me.r - 14);
-          g.fillStyle = "#fff";
-          g.fillText(t, x, y - me.r - 14);
+          g.strokeText(ready ? t : `⭐${pointsFor(me.r)}점 · 더 키워요!`, x, y - me.r - 14);
+          g.fillStyle = ready ? "#fff" : "rgba(255,255,255,.6)";
+          g.fillText(ready ? t : `⭐${pointsFor(me.r)}점 · 더 키워요!`, x, y - me.r - 14);
           g.textAlign = "start";
         }
       }
@@ -428,7 +427,7 @@ export async function startSnowball(ctx) {
       const q = (now - t.t0) / 1100;
       const p = P(t.side, { x: t.x, y: t.y });
       og.globalAlpha = 1 - q;
-      og.font = `700 ${t.big ? 26 : 20}px "Galmuri11", sans-serif`;
+      og.font = `700 ${t.huge ? 34 + 10 * Math.sin(q * Math.PI) : t.big ? 26 : 20}px "Galmuri11", sans-serif`;
       og.lineWidth = 5;
       og.strokeStyle = "rgba(0,0,0,.7)";
       og.strokeText(t.text, p.x, p.y - q * 30);

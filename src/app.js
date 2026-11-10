@@ -217,11 +217,19 @@ function renderPlayers() {
 const hud = {
   hearts(who, n, pop = false) {
     const h = $(`#pl-${sideOf(who)} .hearts`);
+    if (n === null) return void (h.innerHTML = "");
     h.innerHTML = heartsHTML(n, room.settings?.hearts ?? profile.hearts);
     if (pop) h.querySelectorAll("img")[n]?.classList.add("pop");
   },
-  score(who, n) {
-    $(`#pl-${sideOf(who)} .score`).textContent = n === null ? "" : `⭐ ${n}`;
+  score(who, n, pop = false) {
+    const el = $(`#pl-${sideOf(who)} .score`);
+    el.textContent = n === null ? "" : `⭐ ${n}점`;
+    el.classList.toggle("big", n !== null);
+    if (pop) {
+      el.classList.remove("pop");
+      void el.offsetWidth;
+      el.classList.add("pop");
+    }
   },
   clock(text, hurry = false) {
     $("#clock").textContent = text;
@@ -362,13 +370,13 @@ function showGamePicker() {
     <h2>🎄 무슨 게임 할까?</h2>
     <p>${escapeHtml(room.me.nick)} VS ${room.opp.ai ? "🤖 " : ""}${escapeHtml(room.opp.nick)}</p>
     <button class="game-card pixel-box" data-act="game" data-game="pokerface"><span class="g-emoji">🎅</span><span class="g-text"><b>산타 포커페이스</b><small>웃음·깜빡임 참기 · 하트 ${s.hearts}개 · ${{ mix: "혼합", smile: "웃음 참기", blink: "눈싸움" }[s.pfMode]} · ${{ easy: "쉬움", normal: "보통", hard: "어려움" }[s.pfDiff]}</small></span></button>
-    <button class="game-card pixel-box" data-act="game" data-game="snowball"><span class="g-emoji">☃️</span><span class="g-text"><b>크리스마스 눈싸움</b><small>눈 굴려서 던지기 · 하트 ${s.hearts}개 · ${s.snowTime}초 · 2m쯤 떨어져 서기</small></span></button>
+    <button class="game-card pixel-box" data-act="game" data-game="snowball"><span class="g-emoji">☃️</span><span class="g-text"><b>크리스마스 눈싸움</b><small>60초 점수 대결 · 크게 굴려 맞힐수록 점수 UP (1~10점) · 2m쯤 떨어져 서기</small></span></button>
     <p class="small">설정은 홈 화면 톱니바퀴에서 바꿀 수 있어요.</p>
   `);
 }
 
 function settingsSnapshot() {
-  return { hearts: profile.hearts, pfMode: profile.pfMode, pfDiff: profile.pfDiff, snowTime: profile.snowTime };
+  return { hearts: profile.hearts, pfMode: profile.pfMode, pfDiff: profile.pfDiff, snowTime: 60 };
 }
 
 // 로비/결과 버튼들
@@ -469,7 +477,7 @@ async function startGame(name, settings) {
   lobby(null);
   $("#result").classList.remove("open");
   $("#mode-chip").textContent = `${GAMES[name].emoji} ${GAMES[name].name}`;
-  $("#foot-hint").textContent = name === "snowball" ? "💡 2m쯤 떨어져서 상체와 두 손이 보이게 · 내 화면 쪽에서 상대 쪽으로 팔을 휙!" : "💡 정면을 보고 표정을 꾹 참아요";
+  $("#foot-hint").textContent = name === "snowball" ? "💡 60초 점수 대결! 눈을 받아 빙글빙글 크게 굴릴수록 맞혔을 때 점수가 커요 (최대 10점)" : "💡 정면을 보고 표정을 꾹 참아요";
   const gauges = $("#gauges");
   gauges.hidden = name !== "pokerface";
   gauges.className = `gauges on-${room.mySide}`;
@@ -533,11 +541,118 @@ async function startGame(name, settings) {
   room.game = game;
 }
 
-function showResult(res) {
+// ───────── 🏆 승리 세레모니 ─────────
+function snapshot(who) {
+  const c = document.createElement("canvas");
+  c.width = PW;
+  c.height = PH;
+  const src = who === "me" ? myCanvas : panelEl("opp").querySelector(".slot-media > *");
+  try {
+    if (src) c.getContext("2d").drawImage(src, 0, 0, PW, PH);
+  } catch {}
+  return c.toDataURL("image/jpeg", 0.85);
+}
+
+function ceremony(res) {
+  return new Promise((resolve) => {
+    const winWho = res.result === "win" ? "me" : res.result === "lose" ? "opp" : null;
+    const W = winWho ? room[winWho] : null;
+    const L = winWho ? room[winWho === "me" ? "opp" : "me"] : null;
+    const scoreLine = res.myScore !== undefined ? (winWho === "opp" ? `${res.oppScore} : ${res.myScore}` : `${res.myScore} : ${res.oppScore}`) : res.detail || "";
+    const el = document.createElement("div");
+    el.className = "ceremony";
+    el.innerHTML = W
+      ? `
+      <div class="rays"></div>
+      <canvas class="confetti"></canvas>
+      <div class="cer-banner">🏆 WINNER 🏆</div>
+      <div class="cer-stage">
+        <figure class="photo"><span class="crown">👑</span><img src="${snapshot(winWho)}" alt=""><figcaption>${escapeHtml(W.nick)}</figcaption></figure>
+        <img class="cer-char px" src="${charImg(W.char, true)}" alt="">
+        <img class="cer-loser px" src="${charImg(L.char)}" alt="">
+      </div>
+      <div class="cer-name">${winWho === "me" ? "🎉 내가 이겼다! 🎉" : `${escapeHtml(W.nick)} 승리!`}</div>
+      <div class="cer-score">${scoreLine}</div>
+      <small>화면을 누르면 넘어가요</small>`
+      : `
+      <canvas class="confetti"></canvas>
+      <div class="cer-banner draw">🤝 DRAW 🤝</div>
+      <div class="cer-stage"><img class="cer-char px" src="${charImg(room.me.char, true)}" alt=""><img class="cer-char px" src="${charImg(room.opp?.char || "snowy", true)}" alt=""></div>
+      <div class="cer-name">사이좋게 무승부!</div>
+      <div class="cer-score">${scoreLine}</div>
+      <small>화면을 누르면 넘어가요</small>`;
+    document.body.appendChild(el);
+    winWho === "opp" ? (sfx.sad(), setTimeout(() => sfx.fanfare(), 1300)) : sfx.fanfare();
+
+    // 색종이 + 불꽃놀이
+    const cv = el.querySelector(".confetti");
+    const g = cv.getContext("2d");
+    const colors = ["#ff3b3b", "#2ecc71", "#ffd23f", "#ffffff", "#4fc3ff", "#ff7af0"];
+    let parts = [];
+    const resize = () => { cv.width = innerWidth; cv.height = innerHeight; };
+    resize();
+    for (let i = 0; i < 160; i++) parts.push(confettiPiece(true));
+    function confettiPiece(any) {
+      return { kind: "c", x: Math.random() * cv.width, y: any ? Math.random() * -cv.height : -20, vx: (Math.random() - 0.5) * 60, vy: 120 + Math.random() * 160, rot: Math.random() * 6, vr: (Math.random() - 0.5) * 10, s: 6 + Math.random() * 8, c: colors[Math.floor(Math.random() * colors.length)] };
+    }
+    function firework() {
+      const x = cv.width * (0.15 + Math.random() * 0.7), y = cv.height * (0.12 + Math.random() * 0.35);
+      const c = colors[Math.floor(Math.random() * colors.length)];
+      for (let i = 0; i < 40; i++) {
+        const a = (i / 40) * Math.PI * 2, sp = 140 + Math.random() * 120;
+        parts.push({ kind: "f", x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: 1, c });
+      }
+      sfx.tone({ type: "triangle", from: 900, to: 120, dur: 0.35, vol: 0.05 });
+    }
+    let last = performance.now(), nextFw = last + 300, alive = true;
+    const tick = (now) => {
+      if (!alive) return;
+      requestAnimationFrame(tick);
+      const dt = Math.min(0.05, (now - last) / 1000);
+      last = now;
+      if (W && now > nextFw) { firework(); nextFw = now + 500 + Math.random() * 400; }
+      if (parts.filter((p) => p.kind === "c").length < 160) parts.push(confettiPiece(false));
+      g.clearRect(0, 0, cv.width, cv.height);
+      for (const p of parts) {
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+        if (p.kind === "c") {
+          p.rot += p.vr * dt;
+          g.save();
+          g.translate(p.x, p.y);
+          g.rotate(p.rot);
+          g.fillStyle = p.c;
+          g.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2);
+          g.restore();
+        } else {
+          p.vy += 160 * dt;
+          p.life -= dt * 0.9;
+          g.globalAlpha = Math.max(0, p.life);
+          g.fillStyle = p.c;
+          g.fillRect(p.x, p.y, 4, 4);
+          g.globalAlpha = 1;
+        }
+      }
+      parts = parts.filter((p) => (p.kind === "c" ? p.y < cv.height + 20 : p.life > 0));
+    };
+    requestAnimationFrame(tick);
+    const done = () => {
+      if (!alive) return;
+      alive = false;
+      el.classList.add("out");
+      setTimeout(() => el.remove(), 400);
+      resolve();
+    };
+    el.addEventListener("click", done);
+    setTimeout(done, 5200);
+  });
+}
+
+async function showResult(res) {
   const { result } = res;
+  await ceremony(res);
   const gain = recordMatch({ game: room.gameName, result, opp: { nick: room.opp?.nick, char: room.opp?.char }, ai: !!room.opp?.ai, detail: res.detail });
   profile = loadProfile();
-  sfx[result === "win" ? "boing" : "fail"]();
   const me = room.me, opp = room.opp || { nick: "?", char: "snowy" };
   const fig = (p, cls) => `<figure class="${cls}">${cls === "win" ? '<span class="crown">👑</span>' : ""}<img class="char px" src="${charImg(p.char, cls === "lose")}" alt=""><figcaption>${escapeHtml(p.nick)}</figcaption></figure>`;
   $("#r-title").textContent = result === "win" ? "🎉 YOU WIN!" : result === "lose" ? `${opp.nick} WIN!` : "🤝 DRAW!";

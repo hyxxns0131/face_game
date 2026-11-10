@@ -186,13 +186,8 @@ class SnowBot {
       if (t >= 1 && !s.done) {
         s.done = true;
         const hit = Math.hypot(this.head.x - s.to.x, this.head.y - s.to.y) < s.r * 1.3 + this.headR * 0.7;
-        if (hit && this.state === "play") this.hearts = Math.max(0, this.hearts - 1);
-        L.reply("sb:result", { id: s.id, hit, pts: pointsFor(s.r), hearts: this.hearts });
+        L.reply("sb:result", { id: s.id, hit, pts: pointsFor(s.r) });
         if (hit) this.hitUntil = now + 900;
-        if (this.hearts <= 0 && this.state === "play") {
-          this.state = "over";
-          L.reply("sb:dead");
-        }
       }
     }
     this.incoming = this.incoming.filter((s) => !s.done);
@@ -201,8 +196,10 @@ class SnowBot {
 
     // 던지기
     if (this.state === "play") {
-      this.ball = Math.min(46, this.ball + dt * 14);
+      // AI도 눈을 굴려서 키움 (실력이 좋을수록 더 크게 키워서 던짐)
+      this.ball = Math.min(this.targetBall ||= rand(22, 34 + L.skill.aim * 26), this.ball + dt * 16);
       if (now >= this.nextThrow && this.ball >= 16) {
+        this.targetBall = 0;
         const aimErr = (1 - L.skill.aim) * 140;
         const to = { x: this.oppHead.x + rand(-aimErr, aimErr), y: this.oppHead.y + rand(-aimErr, aimErr) * 0.6 };
         const r = this.ball;
@@ -231,7 +228,7 @@ class SnowBot {
       g.fillRect(f.x, f.y, 3, 3);
     }
     this.flakes = this.flakes.filter((f) => f.y < PH);
-    const hurt = now < (this.hitUntil || 0) || this.hearts <= 0;
+    const hurt = now < (this.hitUntil || 0);
     // 스프라이트의 얼굴이 head 위치에 오도록 (스프라이트 위쪽 40% 지점이 얼굴)
     const h = 260;
     drawSprite(g, charImg(L.char, hurt), this.head.x, this.head.y + h * 0.62, h);

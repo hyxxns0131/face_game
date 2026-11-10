@@ -60,6 +60,16 @@ export class Sfx {
   beep(high = false) {
     this.tone({ type: "square", from: high ? 880 : 440, dur: 0.15, vol: 0.08 });
   }
+  /** 승리 팡파레 (short: 짧은 버전 — 대형 명중 때) */
+  fanfare(short = false) {
+    const notes = short ? [784, 1047] : [523, 659, 784, 1047, 784, 1047];
+    const gaps = short ? [0, 0.1] : [0, 0.14, 0.28, 0.42, 0.62, 0.74];
+    notes.forEach((f, i) => this.tone({ type: "square", from: f, dur: i === notes.length - 1 ? 0.5 : 0.13, vol: 0.09, delay: gaps[i] }));
+    if (!short) [523, 659, 784].forEach((f) => this.tone({ type: "triangle", from: f, dur: 0.9, vol: 0.06, delay: 0.74 }));
+  }
+  sad() {
+    [392, 370, 349, 330].forEach((f, i) => this.tone({ type: "triangle", from: f, to: f * 0.97, dur: 0.3, vol: 0.1, delay: i * 0.28 }));
+  }
   fail() {
     this.tone({ type: "sawtooth", from: 420, to: 70, dur: 0.9, vol: 0.14 });
   }
