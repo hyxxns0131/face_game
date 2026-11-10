@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>포커페이스 챌린지</title>
+  <link rel="stylesheet" href="style.css" />
+  <script>
+    // file:// 로 열면 모듈 스크립트와 카메라가 동작하지 않아서 안내를 띄웁니다.
+    if (location.protocol === "file:") {
+      document.addEventListener("DOMContentLoaded", function () {
+        document.getElementById("file-warning").hidden = false;
+        document.getElementById("btn-start").disabled = true;
+      });
+    }
+  </script>
+</head>
+<body>
+  <div id="app">
+    <!-- 시작 화면 -->
+    <section id="screen-home" class="screen active">
+      <h1>😐 포커페이스 챌린지</h1>
+      <p class="sub">웃지도 말고, 눈도 깜빡이지 말고 버텨라!</p>
+
+      <p id="file-warning" class="warning" hidden>
+        ⚠️ 파일을 더블클릭해서 열면 카메라가 켜지지 않아요.<br />
+        폴더 안의 <b>start.bat</b>을 실행해서 열어주세요.
+      </p>
+
+      <div class="card">
+        <label class="field">
+          <span>닉네임</span>
+          <input id="nickname" maxlength="12" placeholder="예: 현서" autocomplete="off" />
+        </label>
+
+        <div class="field">
+          <span>모드</span>
+          <div class="seg" id="mode-seg">
+            <button data-mode="mix" class="on">😐 혼합</button>
+            <button data-mode="smile">😂 웃음 참기</button>
+            <button data-mode="blink">👁️ 눈싸움</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <span>난이도</span>
+          <div class="seg" id="diff-seg">
+            <button data-diff="easy">쉬움</button>
+            <button data-diff="normal" class="on">보통</button>
+            <button data-diff="hard">어려움</button>
+          </div>
+        </div>
+
+        <label class="check"><input type="checkbox" id="sound" checked /> 효과음 켜기</label>
+      </div>
+
+      <button id="btn-start" class="primary">게임 시작</button>
+      <button id="btn-board" class="ghost">🏆 순위표</button>
+
+      <ul class="rules">
+        <li>😂 웃으면 탈락 · 😑 눈 깜빡이면 탈락 · 🙈 얼굴이 1초 넘게 사라져도 탈락</li>
+        <li>시간이 지날수록 방해 요소가 점점 세져요 (이모지 → 아재개그 → 얼굴 필터 → 효과음)</li>
+        <li>친구 대결: 한 판 끝나면 <b>다음 사람</b>을 눌러 차례로 도전!</li>
+      </ul>
+      <p class="hint">카메라 영상은 이 컴퓨터 안에서만 처리되고 어디에도 저장되지 않아요.</p>
+      <a class="link" href="snowball/">☃️ 게임 3: 눈덩이 대작전 →</a>
+    </section>
+
+    <!-- 게임 화면 -->
+    <section id="screen-game" class="screen">
+      <div class="stage" id="stage">
+        <video id="video" playsinline muted></video>
+        <canvas id="overlay"></canvas>
+        <div id="distractions"></div>
+        <div id="hud">
+          <div id="timer">0.0</div>
+          <div class="gauges">
+            <div class="gauge" id="g-smile"><span>😂 웃음</span><div class="bar"><i></i></div></div>
+            <div class="gauge" id="g-blink"><span>👁️ 눈</span><div class="bar"><i></i></div></div>
+          </div>
+        </div>
+        <div id="center-msg"></div>
+        <div id="debug" hidden></div>
+      </div>
+      <div class="game-actions">
+        <button id="btn-quit" class="ghost small">처음으로</button>
+        <span class="hint">D 키: 인식 값 보기</span>
+      </div>
+    </section>
+
+    <!-- 결과 화면 -->
+    <section id="screen-result" class="screen">
+      <h2 id="result-title"></h2>
+      <div id="result-time"></div>
+      <div id="result-badge"></div>
+      <div id="result-rank"></div>
+      <img id="result-shot" alt="탈락 순간" />
+      <div class="row">
+        <button id="btn-again" class="primary">다시 하기</button>
+        <button id="btn-next" class="ghost">다음 사람</button>
+        <button id="btn-result-board" class="ghost">🏆 순위표</button>
+      </div>
+      <a id="btn-save-shot" class="link" download="pokerface.jpg">📸 탈락 순간 저장하기</a>
+    </section>
+
+    <!-- 순위표 화면 -->
+    <section id="screen-board" class="screen">
+      <h2>🏆 순위표</h2>
+      <div class="seg" id="board-seg">
+        <button data-board="mix" class="on">😐 혼합</button>
+        <button data-board="smile">😂 웃음 참기</button>
+        <button data-board="blink">👁️ 눈싸움</button>
+      </div>
+      <ol id="board-list"></ol>
+      <div class="row">
+        <button id="btn-board-back" class="primary">처음으로</button>
+        <button id="btn-board-clear" class="ghost small">기록 지우기</button>
+      </div>
+    </section>
+  </div>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

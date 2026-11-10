@@ -1,0 +1,12 @@
+{
+  "name": "face-game",
+  "version": "1.0.0",
+  "private": true,
+  "description": "포커페이스 챌린지 - 웃음 참기 x 눈싸움 (MediaPipe Face Landmarker)",
+  "scripts": {
+    "start": "npx --yes serve -l 8000 ."
+  },
+  "dependencies": {
+    "@mediapipe/tasks-vision": "1.2.2"
+  }
+}

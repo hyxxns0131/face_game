@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>눈덩이 대작전</title>
+  <link rel="stylesheet" href="../style.css" />
+  <link rel="stylesheet" href="snow.css" />
+</head>
+<body class="snow">
+  <div id="app">
+    <!-- 시작 화면 -->
+    <section id="screen-home" class="screen active">
+      <h1>☃️ 눈덩이 대작전</h1>
+      <p class="sub">눈을 모아 굴리고, 던지고, 피해라!</p>
+
+      <div class="card">
+        <div class="field">
+          <span>모드</span>
+          <div class="seg" id="mode-seg">
+            <button data-mode="duo" class="on">👫 2인 대결</button>
+            <button data-mode="solo">☃️ 혼자 연습 (vs 봇)</button>
+          </div>
+        </div>
+        <div class="names" id="names">
+          <label class="field"><span>왼쪽 (P1)</span><input id="name1" maxlength="10" placeholder="P1" /></label>
+          <label class="field"><span>오른쪽 (P2)</span><input id="name2" maxlength="10" placeholder="P2" /></label>
+        </div>
+        <div class="field">
+          <span>라운드 시간</span>
+          <div class="seg" id="time-seg">
+            <button data-time="45">45초</button>
+            <button data-time="60" class="on">60초</button>
+            <button data-time="90">90초</button>
+          </div>
+        </div>
+        <label class="check"><input type="checkbox" id="sound" checked /> 효과음 켜기</label>
+      </div>
+
+      <button id="btn-start" class="primary">게임 시작</button>
+
+      <ol class="howto">
+        <li><b>❄️ 받기</b> — 하늘에서 내리는 눈송이에 손을 갖다 대면 손에 눈이 뭉쳐져요</li>
+        <li><b>🌀 굴리기</b> — 손을 <b>빙글빙글 원 모양</b>으로 돌리면 눈덩이가 커져요</li>
+        <li><b>💨 던지기</b> — 상대 쪽으로 팔을 <b>휙!</b> 휘두르면 날아가요 (클수록 점수↑, 대신 느려요)</li>
+        <li><b>😎 피하기</b> — 내 얼굴에 <b style="color:#ff6b6b">빨간 조준점</b>이 뜨면 몸을 움직여 피하세요</li>
+      </ol>
+      <p class="hint">카메라에서 2~3m 떨어져서 상체와 두 손이 다 보이게 서 주세요. 화면 가운데 선을 넘어가면 안 돼요!</p>
+      <a class="link" href="../">← 포커페이스 챌린지로</a>
+    </section>
+
+    <!-- 게임 화면 -->
+    <section id="screen-game" class="screen">
+      <div class="scorebar">
+        <div class="sb p1"><span id="sb-name1">P1</span><b id="sb-score1">0</b></div>
+        <div id="clock">60</div>
+        <div class="sb p2"><b id="sb-score2">0</b><span id="sb-name2">P2</span></div>
+      </div>
+      <div class="stage" id="stage">
+        <video id="video" playsinline muted></video>
+        <canvas id="cv"></canvas>
+        <div id="center-msg"></div>
+        <div id="debug" hidden></div>
+      </div>
+      <div class="game-actions">
+        <button id="btn-quit" class="ghost small">처음으로</button>
+        <span class="hint">D 키: 인식 값 보기</span>
+      </div>
+    </section>
+
+    <!-- 결과 화면 -->
+    <section id="screen-result" class="screen">
+      <h2 id="result-title"></h2>
+      <div class="result-grid" id="result-grid"></div>
+      <div class="row">
+        <button id="btn-again" class="primary">한 판 더!</button>
+        <button id="btn-home" class="ghost">처음으로</button>
+      </div>
+    </section>
+  </div>
+
+  <script type="module" src="src/game.js"></script>
+</body>
+</html>
