@@ -9,11 +9,8 @@
 1. 닉네임 쓰고, 캐릭터 5명 중 하나 고르고 **START**
 2. **🎁 친구 초대하기** → 초대 링크를 카톡 등으로 보내기 → 친구가 링크로 들어와서 닉네임·캐릭터 고르고 START
    또는 **🤖 AI랑 하기**
-3. 방장이 게임 선택: 🎅 **산타 포커페이스** / ☃️ **크리스마스 눈싸움**
+3. 친구가 들어오면 방장이 **시작!** (☃️ 크리스마스 눈싸움)
 4. 화면 왼쪽에 방장, 오른쪽에 친구의 카메라 화면이 같이 떠요
-
-### 🎅 산타 포커페이스
-웃거나 눈을 깜빡이면 하트 -1. 방해 요소(이모지·아재개그·얼굴 필터·효과음)는 방장이 만들어서 두 화면에 똑같이 나와요. 먼저 하트를 다 잃으면 패배.
 
 ### ☃️ 크리스마스 눈싸움 (60초 점수 대결)
 ❄️ 내리는 눈에 손 대서 받기 → 🌀 손을 빙글빙글 돌려 키우기 → 💨 상대 화면 쪽으로 팔을 휙! → 😎 빨간 조준점이 뜨면 피하기.
@@ -30,7 +27,7 @@
 |---|---|---|---|---|
 | 산타모자 곰 | 방울 순록 | 눈사람 | 진저브레드 | 귀마개 펭귄 |
 
-`shared/assets/chars/` 에 기본 얼굴(`이름.png`)과 웃는 얼굴(`이름_laugh.png`, AI가 웃을 때 사용)이 있어요.
+`shared/assets/chars/` 에 기본 얼굴(`이름.png`)과 웃는 얼굴(`이름_laugh.png`, 세레모니·AI가 맞았을 때 사용)이 있어요.
 직접 그린 캐릭터로 바꾸려면 같은 이름으로 배경 투명 PNG를 덮어쓰거나, `shared/profile.js` 의 `CHARACTERS` 에 추가하세요.
 
 ## 실행
@@ -48,8 +45,7 @@
 학교·회사 와이파이처럼 막힌 네트워크에서는 연결이 안 될 수 있어요 (그땐 휴대폰 핫스팟 등으로).
 
 ## 설정 (홈 화면 ⚙️)
-하트 개수(포커페이스) · 효과음 · 포커페이스 모드 · 난이도(판정 엄격함 + AI 실력). **방장의 설정**으로 게임해요.
-🏆 내 전적 / 👛 코인(이기면 +12, 지거나 비기면 +2) / ✉️ 게임 방법
+효과음 · AI 실력. 🏆 내 전적 / 👛 코인(이기면 +12, 지거나 비기면 +2) / ✉️ 게임 방법
 
 ## 폴더 구조
 
@@ -58,20 +54,17 @@ index.html, app.css          # 한 페이지 앱 (홈 → 방(로비·게임))
 src/
   app.js                     # 화면 흐름, 로비, 결과
   net.js                     # 친구 연결 (PeerJS)
-  bots.js                    # AI 상대 (포커페이스 AI / 눈싸움 AI)
+  bots.js                    # AI 상대 (눈싸움 AI)
   panel.js                   # 내 화면 캔버스 그리기 (이 화면이 친구에게 전송됨)
-  pokerface/                 # 산타 포커페이스 (game, detector, judge, distractions, filters, jokes)
   snowball/                  # 크리스마스 눈싸움 (game, pose)
 shared/
   ui.css, xmas.js            # 픽셀 UI + 뉴욕 크리스마스 배경
   profile.js                 # 닉네임·캐릭터·설정·기록·코인 (localStorage)
   camera.js, sfx.js, assets/, fonts/ (Galmuri11, OFL)
-lib/mediapipe, lib/peerjs, models/
+lib/mediapipe, lib/peerjs, models/                      # pose_landmarker_lite.task (face_landmarker.task는 안 써요)
 start.bat, server.py         # 내 컴퓨터에서 실행
 ```
 
 ## 조정
-- 포커페이스 판정: `src/pokerface/judge.js` 의 `DIFFICULTY`
 - 눈싸움 던지기·굴리기: `src/snowball/game.js` 맨 위 `CFG` (던지기가 잘 안 되면 `throwSpeed` 를 0.8로), 라운드 시간 `ROUND_SEC`, 점수 공식 `pointsFor`
 - AI 실력: `src/bots.js` 의 `SKILL`
-- 아재개그 추가: `src/pokerface/jokes.js`

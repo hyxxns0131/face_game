@@ -9,7 +9,6 @@ export const CHARACTERS = [
 ];
 
 export const GAMES = {
-  pokerface: { name: "산타 포커페이스", emoji: "🎅" },
   snowball: { name: "크리스마스 눈싸움", emoji: "☃️" },
 };
 
@@ -17,11 +16,8 @@ const KEY = "xmas.profile.v1";
 const DEFAULTS = {
   nick: "",
   char: "coco",
-  hearts: 3,
   sound: true,
-  pfMode: "mix",     // mix | smile | blink
-  pfDiff: "normal",  // easy | normal | hard (판정 엄격함 + AI 실력)
-  snowTime: 60,
+  pfDiff: "normal",  // easy | normal | hard (AI 실력)
   coins: 0,
   records: [],
 };

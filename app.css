@@ -238,44 +238,6 @@
 .overlay { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 8; }
 .foot-hint { text-align: center; color: #fff; font-size: 13px; text-shadow: 1px 1px 0 var(--line); margin: 14px 0; }
 
-.gauges {
-  position: absolute;
-  bottom: 40px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  z-index: 9;
-  width: 30%;
-}
-.gauges.on-left { left: 40px; }
-.gauges.on-right { right: 40px; }
-.gauges[hidden] { display: none; }
-.gauge { display: flex; align-items: center; gap: 8px; }
-.gauge span { font-size: 16px; width: 22px; }
-.gauge .bar { flex: 1; height: 12px; background: rgba(255, 255, 255, .3); box-shadow: 0 0 0 3px var(--line); }
-.gauge .bar i { display: block; height: 100%; width: 0; background: #5ee07a; }
-.gauge.warn .bar i { background: var(--gold); }
-.gauge.danger .bar i { background: #ff3b3b; }
-
-/* 방해 요소 */
-#distractions { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 10; }
-.float-emoji { position: absolute; bottom: -80px; animation-name: floatUp; animation-timing-function: linear; animation-fill-mode: forwards; filter: drop-shadow(3px 3px 0 rgba(0, 0, 0, .3)); }
-.joke {
-  position: absolute;
-  max-width: 46%;
-  background: #fff;
-  color: var(--ink);
-  padding: 12px 18px;
-  font-size: clamp(16px, 2vw, 22px);
-  font-weight: 700;
-  box-shadow: 0 -4px 0 0 var(--line), 0 4px 0 0 var(--line), -4px 0 0 0 var(--line), 4px 0 0 0 var(--line), 6px 8px 0 0 rgba(0, 0, 0, .25);
-  animation: pop .3s steps(4);
-  line-height: 1.5;
-}
-.joke .a { display: block; color: var(--pink); font-size: 1.3em; opacity: 0; animation: reveal .3s 1.4s forwards; }
-.joke .a:empty { display: none; }
-.banner { position: absolute; top: 38%; left: 0; right: 0; text-align: center; font-size: clamp(40px, 7vw, 76px); font-weight: 700; color: var(--gold); text-shadow: 5px 5px 0 var(--line); animation: bannerOut 1.6s steps(8) forwards; }
-
 /* 로비 상자 */
 .lobby {
   position: fixed;
@@ -313,10 +275,7 @@
 #debug { position: fixed; left: 10px; bottom: 10px; background: rgba(0, 0, 0, .8); color: #fff; font: 12px/1.5 Consolas, monospace; padding: 8px 10px; white-space: pre; z-index: 60; }
 
 @keyframes idle { 50% { transform: translateY(-.8cqw); } }
-@keyframes floatUp { to { transform: translate(var(--drift, 0), -1000px) rotate(var(--spin, 360deg)); } }
-@keyframes reveal { to { opacity: 1; } }
 @keyframes fadeOut { to { opacity: 0; } }
-@keyframes bannerOut { 0% { transform: scale(.4); opacity: 0; } 20% { transform: scale(1.1); opacity: 1; } 75% { opacity: 1; } 100% { transform: scale(1.3); opacity: 0; } }
 @keyframes dots { 0% { content: ""; } 25% { content: "."; } 50% { content: ".."; } 75% { content: "..."; } }
 
 @media (max-width: 760px) {

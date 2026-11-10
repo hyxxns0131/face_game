@@ -5,7 +5,6 @@ import { Sfx } from "../shared/sfx.js";
 import { OnlineLink, roomFromUrl, friendlyNetError } from "./net.js";
 import { BotLink } from "./bots.js";
 import { drawCameraCover, drawTag, drawNight, PW, PH } from "./panel.js";
-import { startPokerface } from "./pokerface/game.js";
 import { startSnowball } from "./snowball/game.js";
 
 const $ = (s) => document.querySelector(s);
@@ -46,9 +45,7 @@ $("#btn-next").addEventListener("click", () => step(1));
 document.querySelectorAll(".slot").forEach((el) => el.addEventListener("click", () => el.dataset.slot !== "center" && choose(el.dataset.id)));
 
 function renderHomeHearts() {
-  const el = $("#home-hearts");
-  el.innerHTML = heartsHTML(profile.hearts, profile.hearts);
-  el.classList.toggle("many", profile.hearts > 3);
+  $("#home-hearts").innerHTML = heartsHTML(3, 3); // 장식용 하트
   $("#coin-badge").textContent = profile.coins;
 }
 
@@ -112,7 +109,6 @@ document.querySelectorAll("#m-settings .pick").forEach((pick) =>
     if (!b) return;
     const key = pick.dataset.key;
     let v = b.dataset.v;
-    if (key === "hearts" || key === "snowTime") v = Number(v);
     if (key === "sound") v = v === "true";
     profile = updateProfile({ [key]: v });
     sfx.enabled = profile.sound;
@@ -332,7 +328,7 @@ function wireLink() {
     renderPlayers();
     sfx.beep(true);
     if (room.mode !== "guest") showGamePicker();
-    else lobby(`<h2>🎄 ${escapeHtml(room.opp.nick)}님 방에 들어왔어요!</h2><p class="dots">방장이 게임을 고르는 중</p>`);
+    else lobby(`<h2>🎄 ${escapeHtml(room.opp.nick)}님 방에 들어왔어요!</h2><p>카메라에서 2m쯤 떨어져서 상체와 두 손이 보이게 서 주세요.</p><p class="dots">방장이 시작하길 기다리는 중</p>`);
   });
   L.on("stream", (s) => {
     const v = document.createElement("video");
@@ -348,7 +344,7 @@ function wireLink() {
     if (room.mode !== "guest") return;
     stopGame();
     $("#result").classList.remove("open");
-    lobby(`<h2>🎄 다음 게임 고르는 중</h2><p class="dots">방장이 게임을 고르는 중</p>`);
+    lobby(`<h2>🎄 잠깐 쉬는 중</h2><p class="dots">방장이 시작하길 기다리는 중</p>`);
   });
   L.on("full", () => lobby(`<h2>😢 방이 꽉 찼어요</h2><p>이미 두 명이 게임 중이에요.</p><button class="pixel-btn" data-act="home">홈으로</button>`));
   const gone = () => {
@@ -367,16 +363,15 @@ function wireLink() {
 function showGamePicker() {
   const s = settingsSnapshot();
   lobby(`
-    <h2>🎄 무슨 게임 할까?</h2>
+    <h2>☃️ 눈싸움 준비 완료!</h2>
     <p>${escapeHtml(room.me.nick)} VS ${room.opp.ai ? "🤖 " : ""}${escapeHtml(room.opp.nick)}</p>
-    <button class="game-card pixel-box" data-act="game" data-game="pokerface"><span class="g-emoji">🎅</span><span class="g-text"><b>산타 포커페이스</b><small>웃음·깜빡임 참기 · 하트 ${s.hearts}개 · ${{ mix: "혼합", smile: "웃음 참기", blink: "눈싸움" }[s.pfMode]} · ${{ easy: "쉬움", normal: "보통", hard: "어려움" }[s.pfDiff]}</small></span></button>
-    <button class="game-card pixel-box" data-act="game" data-game="snowball"><span class="g-emoji">☃️</span><span class="g-text"><b>크리스마스 눈싸움</b><small>60초 점수 대결 · 크게 굴려 맞힐수록 점수 UP (1~10점) · 2m쯤 떨어져 서기</small></span></button>
-    <p class="small">설정은 홈 화면 톱니바퀴에서 바꿀 수 있어요.</p>
+    <button class="game-card pixel-box" data-act="game" data-game="snowball"><span class="g-emoji">☃️</span><span class="g-text"><b>크리스마스 눈싸움 시작!</b><small>60초 점수 대결 · 크게 굴려 맞힐수록 점수 UP (1~10점) · 2m쯤 떨어져 서기</small></span></button>
+    <p class="small">💡 둘 다 카메라에서 2m쯤 떨어져서 상체와 두 손이 보이게 서 주세요.</p>
   `);
 }
 
 function settingsSnapshot() {
-  return { hearts: profile.hearts, pfMode: profile.pfMode, pfDiff: profile.pfDiff, snowTime: 60 };
+  return { snowTime: 60 };
 }
 
 // 로비/결과 버튼들
@@ -463,8 +458,6 @@ function stopGame() {
     p.classList.remove("danger", "hit");
     p.querySelector(".panel-msg").innerHTML = "";
   });
-  $("#gauges").hidden = true;
-  $("#distractions").innerHTML = "";
   centerMsg("");
   if (room.camOn && !room.idle) startIdle();
 }
@@ -477,11 +470,7 @@ async function startGame(name, settings) {
   lobby(null);
   $("#result").classList.remove("open");
   $("#mode-chip").textContent = `${GAMES[name].emoji} ${GAMES[name].name}`;
-  $("#foot-hint").textContent = name === "snowball" ? "💡 60초 점수 대결! 크게 굴릴수록 점수 UP · 손 위치로 상대 화면의 🎯조준점을 움직여 얼굴에 맞추고(LOCK ON) 상대 쪽으로 휙! (스페이스바도 OK)" : "💡 정면을 보고 표정을 꾹 참아요";
-  const gauges = $("#gauges");
-  gauges.hidden = name !== "pokerface";
-  gauges.className = `gauges on-${room.mySide}`;
-  gauges.hidden = name !== "pokerface";
+  $("#foot-hint").textContent = true ? "💡 60초 점수 대결! 크게 굴릴수록 점수 UP · 손 위치로 상대 화면의 🎯조준점을 움직여 얼굴에 맞추고(LOCK ON) 상대 쪽으로 휙! (스페이스바도 OK)" : "💡 정면을 보고 표정을 꾹 참아요";
   hud.score("me", null);
   hud.score("opp", null);
 
@@ -499,7 +488,6 @@ async function startGame(name, settings) {
     hud,
     arena,
     overlay: $("#overlay"),
-    dxLayer: $("#distractions"),
     msg: centerMsg,
     panelMsg(who, html) {
       const el = panelEl(who).querySelector(".panel-msg");
@@ -519,13 +507,6 @@ async function startGame(name, settings) {
         setTimeout(() => ctx.panelMsg("opp", ""), 1500);
       }
     },
-    gauge(kind, v) {
-      const el = $(`#gauges .gauge.${kind}`);
-      v = Math.max(0, Math.min(1, v || 0));
-      el.querySelector("i").style.width = v * 100 + "%";
-      el.classList.toggle("warn", v > 0.5 && v <= 0.75);
-      el.classList.toggle("danger", v > 0.75);
-    },
     panelRect(who) {
       const a = arena.getBoundingClientRect();
       const r = panelEl(who).getBoundingClientRect();
@@ -533,7 +514,7 @@ async function startGame(name, settings) {
     },
     onEnd: (res) => showResult(res),
   };
-  const starter = name === "pokerface" ? startPokerface : startSnowball;
+  const starter = startSnowball;
   const token = {};
   room.token = token;
   const game = await starter(ctx);
@@ -662,7 +643,7 @@ async function showResult(res) {
   $("#r-coins").textContent = `🪙 +${gain} 코인 (지금 ${profile.coins})`;
   $("#r-btns").innerHTML =
     room.mode === "guest"
-      ? `<p class="small dots">방장이 다음 게임을 고르는 중</p><button class="pixel-btn white" data-act="home">나가기</button>`
-      : `<button class="pixel-btn" data-act="again">한 판 더!</button><button class="pixel-btn white" data-act="pick">다른 게임</button><button class="pixel-btn white" data-act="home">나가기</button>`;
+      ? `<p class="small dots">방장이 한 판 더 할지 고르는 중</p><button class="pixel-btn white" data-act="home">나가기</button>`
+      : `<button class="pixel-btn" data-act="again">한 판 더!</button><button class="pixel-btn white" data-act="home">나가기</button>`;
   $("#result").classList.add("open");
 }

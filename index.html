@@ -13,7 +13,7 @@
   <!-- ───────── 홈: 닉네임 + 캐릭터 ───────── -->
   <section class="screen active" id="home">
     <main class="phone">
-      <button class="icon-btn hearts-btn" id="btn-hearts" title="하트 개수 (설정)"><div class="hearts" id="home-hearts"></div></button>
+      <button class="icon-btn hearts-btn" id="btn-hearts" title="설정"><div class="hearts" id="home-hearts"></div></button>
       <button class="icon-btn trophy" id="btn-trophy" title="기록"><img class="px" src="shared/assets/trophy.png" alt="기록" /></button>
       <button class="icon-btn gear" id="btn-gear" title="설정"><img class="px" src="shared/assets/gear.png" alt="설정" /></button>
 
@@ -69,12 +69,7 @@
       <div class="vs">VS</div>
       <div class="panel right" id="panel-right"><div class="slot-media"></div><div class="panel-msg"></div></div>
       <canvas class="overlay" id="overlay"></canvas>
-      <div id="distractions"></div>
       <div class="center-msg" id="center-msg"></div>
-      <div class="gauges" id="gauges" hidden>
-        <div class="gauge smile"><span>😂</span><div class="bar"><i></i></div></div>
-        <div class="gauge blink"><span>👁️</span><div class="bar"><i></i></div></div>
-      </div>
     </main>
     <p class="foot-hint" id="foot-hint"></p>
 
@@ -114,14 +109,9 @@
     <div class="modal pixel-box">
       <button class="close" data-close>✕</button>
       <h2><img class="px" src="shared/assets/gear.png" alt="" /> 설정</h2>
-      <p class="small">방장(초대한 사람)의 설정으로 게임해요.</p>
-      <div class="row-label">하트 개수 (🎅 포커페이스)</div>
-      <div class="pick" data-key="hearts"><button data-v="1">♥ 1</button><button data-v="3">♥ 3</button><button data-v="5">♥ 5</button></div>
       <div class="row-label">효과음</div>
       <div class="pick" data-key="sound"><button data-v="true">켜기</button><button data-v="false">끄기</button></div>
-      <div class="row-label">🎅 포커페이스 모드</div>
-      <div class="pick" data-key="pfMode"><button data-v="mix">혼합</button><button data-v="smile">웃음 참기</button><button data-v="blink">눈싸움</button></div>
-      <div class="row-label">난이도 (판정 엄격함 · AI 실력)</div>
+      <div class="row-label">🤖 AI 실력</div>
       <div class="pick" data-key="pfDiff"><button data-v="easy">쉬움</button><button data-v="normal">보통</button><button data-v="hard">어려움</button></div>
       <div class="row-label">기록</div>
       <button class="pixel-btn white small" id="btn-reset">기록·코인 초기화</button>
@@ -145,12 +135,6 @@
       <button class="close" data-close>✕</button>
       <h2><img class="px" src="shared/assets/letter.png" alt="" /> 게임 방법</h2>
       <p>닉네임 쓰고 캐릭터 고르고 <b>START</b> →<br /><b>🎁 친구 초대하기</b>: 링크를 친구에게 보내면, 친구는 자기 컴퓨터 카메라로 들어와요.<br /><b>🤖 AI랑 하기</b>: 혼자서도 OK!</p>
-      <h3>🎅 산타 포커페이스</h3>
-      <ul>
-        <li>웃거나 눈을 깜빡이면 <b>하트 -1</b></li>
-        <li>방해 요소(이모지·아재개그·얼굴 필터·효과음)가 점점 세져요</li>
-        <li>먼저 하트를 다 잃으면 패배!</li>
-      </ul>
       <h3>☃️ 크리스마스 눈싸움</h3>
       <ul>
         <li>❄️ 내리는 눈에 손을 대서 받기</li>

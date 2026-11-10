@@ -3,16 +3,15 @@
 import { Emitter } from "./net.js";
 import { drawNight, drawTag, drawSprite, PW, PH } from "./panel.js";
 import { snowball, pointsFor } from "./snowball/game.js";
-import { stageOf } from "./pokerface/distractions.js";
 import { charImg } from "../shared/profile.js";
 
 const rand = (a, b) => a + Math.random() * (b - a);
 
-// 난이도 → AI 실력 (어려울수록 AI가 잘 참고, 잘 피하고, 잘 맞힘)
+// 난이도 → AI 실력 (어려울수록 잘 피하고, 잘 맞히고, 자주 던짐)
 const SKILL = {
-  easy: { laugh: 1.5, dodge: 0.25, aim: 0.35, throwGap: [3600, 5200] },
-  normal: { laugh: 1.0, dodge: 0.45, aim: 0.6, throwGap: [2800, 4400] },
-  hard: { laugh: 0.65, dodge: 0.65, aim: 0.85, throwGap: [2200, 3400] },
+  easy: { dodge: 0.25, aim: 0.35, throwGap: [3600, 5200] },
+  normal: { dodge: 0.45, aim: 0.6, throwGap: [2800, 4400] },
+  hard: { dodge: 0.65, aim: 0.85, throwGap: [2200, 3400] },
 };
 
 export class BotLink extends Emitter {
@@ -54,7 +53,7 @@ export class BotLink extends Emitter {
     const m = { t, ...data };
     if (t === "game") {
       this.bot?.stop?.();
-      this.bot = m.game === "pokerface" ? new PokerBot(this, m.settings) : new SnowBot(this, m.settings);
+      this.bot = new SnowBot(this, m.settings);
     }
     if (t === "lobby") {
       this.bot?.stop?.();
@@ -74,71 +73,11 @@ export class BotLink extends Emitter {
   }
 }
 
-// ───────── 🎅 포커페이스 AI ─────────
-class PokerBot {
-  constructor(link, settings) {
-    this.link = link;
-    this.hearts = settings.hearts;
-    this.state = "calib";
-    this.laughUntil = 0;
-    this.wobble = 0;
-    this.timer = null;
-    setTimeout(() => link.reply("pf:calibrated"), rand(1500, 2500));
-  }
-  receive(m) {
-    if (m.t === "pf:go") {
-      this.state = "countdown";
-      setTimeout(() => this.startPlay(), 3000);
-    }
-    if (m.t === "pf:dx" && m.ev.k === "joke") this.wobble = 1; // 개그 나오면 흔들림
-    if (m.t === "pf:end" || m.t === "pf:dead") this.stop();
-  }
-  startPlay() {
-    if (this.state !== "countdown") return;
-    this.state = "play";
-    this.t0 = performance.now();
-    // 0.25초마다 "웃음 참기" 굴림. 시간이 지날수록(단계↑) 더 잘 웃음
-    this.timer = setInterval(() => {
-      const now = performance.now();
-      if (now < this.laughUntil || this.state !== "play") return;
-      const st = stageOf(now - this.t0);
-      const perSec = [0, 0.01, 0.035, 0.07, 0.12][st] * this.link.skill.laugh * (1 + this.wobble);
-      this.wobble *= 0.9;
-      if (Math.random() < perSec / 4) {
-        this.hearts--;
-        this.laughUntil = now + 1600;
-        this.link.reply("pf:heart", { hearts: this.hearts, reason: Math.random() < 0.7 ? "smile" : "blink" });
-        if (this.hearts <= 0) {
-          this.state = "over";
-          this.link.reply("pf:dead");
-          this.stop();
-        }
-      }
-    }, 250);
-  }
-  draw(now) {
-    const g = this.link.g;
-    drawNight(g, now);
-    const laughing = now < this.laughUntil || (this.state === "over" && this.hearts <= 0);
-    const shake = laughing ? Math.sin(now / 30) * 6 : Math.sin(now / 90) * this.wobble * 4;
-    drawSprite(g, charImg(this.link.char, laughing), PW / 2 + shake, PH - 20, 380);
-    if (laughing) {
-      g.fillStyle = "rgba(255,40,70,.18)";
-      g.fillRect(0, 0, PW, PH);
-    }
-    drawTag(g, `🤖 ${this.link.nick}`, charImg(this.link.char), "#2ecc71");
-  }
-  stop() {
-    clearInterval(this.timer);
-  }
-}
-
 // ───────── ☃️ 눈싸움 AI ─────────
 class SnowBot {
   constructor(link, settings) {
     this.link = link;
-    this.hearts = settings.hearts;
-    this.state = "ready";
+        this.state = "ready";
     this.head = { x: PW / 2, y: PH * 0.42 };
     this.headR = 46;
     this.offset = 0;
