@@ -1,4 +1,4 @@
-// MediaPipe Face Landmarker — 최대 2명의 얼굴을 매 프레임 인식
+// MediaPipe Face Landmarker — 내 카메라의 얼굴 1개
 import { FaceLandmarker, FilesetResolver } from "../../lib/mediapipe/vision_bundle.mjs";
 
 const WASM_PATH = new URL("../../lib/mediapipe/wasm", import.meta.url).href;
@@ -10,8 +10,8 @@ let lastTs = 0;
 const options = (delegate) => ({
   baseOptions: { modelAssetPath: MODEL_PATH, delegate },
   runningMode: "VIDEO",
-  numFaces: 2,
-  outputFaceBlendshapes: true, // 표정 값 52개 (웃음, 눈 감김 등)
+  numFaces: 1,
+  outputFaceBlendshapes: true,
 });
 
 export async function initDetector() {
@@ -25,20 +25,17 @@ export async function initDetector() {
   }
 }
 
-/** @returns 얼굴 배열 [{ scores: {eyeBlinkLeft: 0~1, ...}, landmarks: 478개 점 }] */
-export function detectFaces(video) {
-  if (!landmarker || video.readyState < 2) return [];
+/** @returns null | { scores, landmarks } */
+export function detectFace(video) {
+  if (!landmarker || video.readyState < 2) return null;
   let ts = performance.now();
   if (ts <= lastTs) ts = lastTs + 1;
   lastTs = ts;
-  const result = landmarker.detectForVideo(video, ts);
-  const faces = [];
-  (result.faceLandmarks || []).forEach((landmarks, i) => {
-    const cats = result.faceBlendshapes?.[i]?.categories;
-    if (!cats) return;
-    const scores = {};
-    for (const c of cats) scores[c.categoryName] = c.score;
-    faces.push({ scores, landmarks });
-  });
-  return faces;
+  const r = landmarker.detectForVideo(video, ts);
+  const lm = r.faceLandmarks?.[0];
+  const cats = r.faceBlendshapes?.[0]?.categories;
+  if (!lm || !cats) return null;
+  const scores = {};
+  for (const c of cats) scores[c.categoryName] = c.score;
+  return { scores, landmarks: lm };
 }

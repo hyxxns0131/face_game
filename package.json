@@ -1,12 +1,13 @@
 {
-  "name": "face-game",
-  "version": "1.0.0",
+  "name": "xmas-snowfight",
+  "version": "2.0.0",
   "private": true,
-  "description": "포커페이스 챌린지 - 웃음 참기 x 눈싸움 (MediaPipe Face Landmarker)",
+  "description": "크리스마스 기념 눈싸움 하자! - 카메라 1:1 온라인/AI 대결 (MediaPipe + PeerJS)",
   "scripts": {
     "start": "npx --yes serve -l 8000 ."
   },
   "dependencies": {
-    "@mediapipe/tasks-vision": "1.2.2"
+    "@mediapipe/tasks-vision": "1.2.2",
+    "peerjs": "1.5.5"
   }
 }

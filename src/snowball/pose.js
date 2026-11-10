@@ -1,4 +1,4 @@
-// MediaPipe Pose Landmarker — 최대 2명의 몸(코, 어깨, 손목 등 33개 점)을 인식
+// MediaPipe Pose Landmarker — 내 몸(코, 어깨, 손목 등 33개 점)을 인식
 import { PoseLandmarker, FilesetResolver } from "../../lib/mediapipe/vision_bundle.mjs";
 
 const WASM_PATH = new URL("../../lib/mediapipe/wasm", import.meta.url).href;
@@ -10,7 +10,7 @@ let lastTs = 0;
 const options = (delegate) => ({
   baseOptions: { modelAssetPath: MODEL_PATH, delegate },
   runningMode: "VIDEO",
-  numPoses: 2,
+  numPoses: 1,
   minPoseDetectionConfidence: 0.5,
   minPosePresenceConfidence: 0.5,
   minTrackingConfidence: 0.5,

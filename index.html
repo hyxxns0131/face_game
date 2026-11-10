@@ -4,67 +4,108 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>크리스마스 기념 눈싸움 하자!</title>
+  <meta property="og:title" content="🎄 크리스마스 기념 눈싸움 하자!" />
+  <meta property="og:description" content="초대 링크로 들어와서 나랑 1:1 눈싸움 한 판!" />
   <link rel="stylesheet" href="shared/ui.css" />
-  <link rel="stylesheet" href="home.css" />
+  <link rel="stylesheet" href="app.css" />
 </head>
 <body>
-  <main class="phone" id="phone">
-    <!-- 상단: 하트 / 트로피 / 설정 -->
-    <button class="icon-btn hearts-btn" id="btn-hearts" title="하트 개수 (설정)">
-      <div class="hearts" id="home-hearts"></div>
-    </button>
-    <button class="icon-btn trophy" id="btn-trophy" title="기록"><img class="px" src="shared/assets/trophy.png" alt="기록" /></button>
-    <button class="icon-btn gear" id="btn-gear" title="설정"><img class="px" src="shared/assets/gear.png" alt="설정" /></button>
+  <!-- ───────── 홈: 닉네임 + 캐릭터 ───────── -->
+  <section class="screen active" id="home">
+    <main class="phone">
+      <button class="icon-btn hearts-btn" id="btn-hearts" title="하트 개수 (설정)"><div class="hearts" id="home-hearts"></div></button>
+      <button class="icon-btn trophy" id="btn-trophy" title="기록"><img class="px" src="shared/assets/trophy.png" alt="기록" /></button>
+      <button class="icon-btn gear" id="btn-gear" title="설정"><img class="px" src="shared/assets/gear.png" alt="설정" /></button>
 
-    <!-- 크리스마스 타이틀 -->
-    <div class="xmas-title">
-      <span class="ny">★ NEW YORK · MERRY CHRISTMAS ★</span>
-      <h1>크리스마스 기념<br /><em>눈싸움 하자!</em></h1>
+      <div class="xmas-title">
+        <span class="ny" id="title-sub">★ NEW YORK · MERRY CHRISTMAS ★</span>
+        <h1>크리스마스 기념<br /><em>눈싸움 하자!</em></h1>
+      </div>
+
+      <div class="invite-banner" id="invite-banner" hidden>🎁 초대받았어요! 방 <b id="invite-code"></b><br /><small>닉네임이랑 캐릭터 고르고 START!</small></div>
+
+      <div class="carousel" id="carousel">
+        <button class="slot left" data-slot="left"><img class="char px" alt="" /></button>
+        <button class="slot center" data-slot="center"><img class="char px" alt="" /></button>
+        <button class="slot right" data-slot="right"><img class="char px" alt="" /></button>
+      </div>
+
+      <button class="icon-btn arrow left" id="btn-prev" title="이전 캐릭터"><img class="px" src="shared/assets/arrow_l_w.png" alt="←" /></button>
+      <div class="char-name"><b id="char-name"></b><small id="char-desc"></small></div>
+      <button class="icon-btn arrow right" id="btn-next" title="다음 캐릭터"><img class="px" src="shared/assets/arrow_r_w.png" alt="→" /></button>
+
+      <label class="nick-box">
+        <span>닉네임</span>
+        <input id="nick" maxlength="10" placeholder="닉네임을 써 주세요" autocomplete="off" />
+      </label>
+
+      <button class="icon-btn start-btn" id="btn-start"><img class="px" src="shared/assets/start_xmas.png" alt="START" /></button>
+
+      <button class="icon-btn letter" id="btn-letter" title="게임 방법"><img class="px" src="shared/assets/letter.png" alt="게임 방법" /></button>
+      <button class="icon-btn wallet" id="btn-wallet" title="코인"><img class="px" src="shared/assets/wallet.png" alt="코인" /><span class="coin-badge" id="coin-badge">0</span></button>
+
+      <p class="file-warning" id="file-warning" hidden>⚠️ start.bat으로 실행해야<br />카메라가 켜져요!</p>
+    </main>
+  </section>
+
+  <!-- ───────── 방: 로비 + 게임 ───────── -->
+  <section class="screen" id="room">
+    <header class="topbar">
+      <button class="icon-btn back-btn" id="btn-leave" title="나가기"><img class="px" src="shared/assets/arrow_l_w.png" alt="나가기" /></button>
+      <div class="pl" id="pl-left">
+        <img class="ava px" alt="" />
+        <div class="sub"><span class="name"></span><div class="hearts"></div><span class="score"></span></div>
+      </div>
+      <div class="clock" id="clock"></div>
+      <div class="pl right" id="pl-right">
+        <img class="ava px" alt="" />
+        <div class="sub"><span class="name"></span><div class="hearts"></div><span class="score"></span></div>
+      </div>
+      <span class="mode-chip" id="mode-chip"></span>
+    </header>
+
+    <main class="arena" id="arena">
+      <div class="panel left" id="panel-left"><div class="slot-media"></div><div class="panel-msg"></div></div>
+      <div class="vs">VS</div>
+      <div class="panel right" id="panel-right"><div class="slot-media"></div><div class="panel-msg"></div></div>
+      <canvas class="overlay" id="overlay"></canvas>
+      <div id="distractions"></div>
+      <div class="center-msg" id="center-msg"></div>
+      <div class="gauges" id="gauges" hidden>
+        <div class="gauge smile"><span>😂</span><div class="bar"><i></i></div></div>
+        <div class="gauge blink"><span>👁️</span><div class="bar"><i></i></div></div>
+      </div>
+    </main>
+    <p class="foot-hint" id="foot-hint"></p>
+
+    <!-- 로비 상자 -->
+    <div class="lobby pixel-box" id="lobby"></div>
+  </section>
+
+  <!-- 결과 -->
+  <div class="result" id="result">
+    <div class="modal pixel-box">
+      <h2 id="r-title"></h2>
+      <div class="winner" id="r-chars"></div>
+      <div class="stats" id="r-stats"></div>
+      <div class="coins" id="r-coins"></div>
+      <div class="btns" id="r-btns"></div>
     </div>
+  </div>
 
-    <!-- 가운데: 캐릭터 선택 -->
-    <div class="carousel" id="carousel">
-      <button class="slot left" data-slot="left"><img class="item px" alt="" /><img class="char px" alt="" /></button>
-      <button class="slot center" data-slot="center"><img class="item px" alt="" /><img class="char px" alt="" /></button>
-      <button class="slot right" data-slot="right"><img class="item px" alt="" /><img class="char px" alt="" /></button>
-    </div>
-
-    <button class="icon-btn arrow left" id="btn-prev" title="이전 캐릭터"><img class="px" src="shared/assets/arrow_l_w.png" alt="←" /></button>
-    <div class="char-name" id="char-name">LILY</div>
-    <button class="icon-btn arrow right" id="btn-next" title="다음 캐릭터"><img class="px" src="shared/assets/arrow_r_w.png" alt="→" /></button>
-
-    <div class="players" id="players">
-      <button class="ptab" data-p="p1"><span class="tag">P1</span><span class="nm"></span></button>
-      <span class="vs">VS</span>
-      <button class="ptab" data-p="p2"><span class="tag">P2</span><span class="nm"></span></button>
-    </div>
-
-    <button class="icon-btn start-btn" id="btn-start"><img class="px" src="shared/assets/start_xmas.png" alt="START" /></button>
-
-    <!-- 하단: 편지(게임 방법) / 지갑(코인) -->
-    <button class="icon-btn letter" id="btn-letter" title="게임 방법"><img class="px" src="shared/assets/letter.png" alt="게임 방법" /></button>
-    <button class="icon-btn wallet" id="btn-wallet" title="코인">
-      <img class="px" src="shared/assets/wallet.png" alt="코인" />
-      <span class="coin-badge" id="coin-badge">0</span>
-    </button>
-
-    <p class="file-warning" id="file-warning" hidden>⚠️ start.bat으로 실행해야<br />카메라가 켜져요!</p>
-  </main>
-
-  <!-- 게임 선택 -->
-  <div class="modal-back" id="m-games">
+  <!-- 모드 선택 -->
+  <div class="modal-back" id="m-mode">
     <div class="modal pixel-box">
       <button class="close" data-close>✕</button>
-      <h2>🎄 게임 선택</h2>
-      <p class="matchup" id="matchup"></p>
-      <a class="game-card pixel-box" href="pokerface/">
-        <span class="g-emoji">🎅</span>
-        <span class="g-text"><b>산타 포커페이스</b><small>웃음·깜빡임 참기 1:1 · 먼저 하트를 다 잃으면 패배</small></span>
-      </a>
-      <a class="game-card pixel-box" href="snowball/">
-        <span class="g-emoji">☃️</span>
-        <span class="g-text"><b>크리스마스 눈싸움</b><small>눈 받아서 굴려서 던지기 1:1 · 맞으면 하트 -1</small></span>
-      </a>
+      <h2>🎄 누구랑 할까?</h2>
+      <button class="game-card pixel-box" id="btn-host">
+        <span class="g-emoji">🎁</span>
+        <span class="g-text"><b>친구 초대하기</b><small>초대 링크를 만들어서 친구에게 보내요. 친구가 들어오면 1:1 대결!</small></span>
+      </button>
+      <button class="game-card pixel-box" id="btn-ai">
+        <span class="g-emoji">🤖</span>
+        <span class="g-text"><b>AI랑 하기</b><small>혼자서 AI 캐릭터랑 대결해요</small></span>
+      </button>
     </div>
   </div>
 
@@ -73,13 +114,14 @@
     <div class="modal pixel-box">
       <button class="close" data-close>✕</button>
       <h2><img class="px" src="shared/assets/gear.png" alt="" /> 설정</h2>
-      <div class="row-label">하트 개수 (두 게임 공통)</div>
+      <p class="small">방장(초대한 사람)의 설정으로 게임해요.</p>
+      <div class="row-label">하트 개수</div>
       <div class="pick" data-key="hearts"><button data-v="1">♥ 1</button><button data-v="3">♥ 3</button><button data-v="5">♥ 5</button></div>
       <div class="row-label">효과음</div>
       <div class="pick" data-key="sound"><button data-v="true">켜기</button><button data-v="false">끄기</button></div>
       <div class="row-label">🎅 포커페이스 모드</div>
       <div class="pick" data-key="pfMode"><button data-v="mix">혼합</button><button data-v="smile">웃음 참기</button><button data-v="blink">눈싸움</button></div>
-      <div class="row-label">🎅 포커페이스 난이도</div>
+      <div class="row-label">난이도 (판정 엄격함 · AI 실력)</div>
       <div class="pick" data-key="pfDiff"><button data-v="easy">쉬움</button><button data-v="normal">보통</button><button data-v="hard">어려움</button></div>
       <div class="row-label">☃️ 눈싸움 라운드 시간</div>
       <div class="pick" data-key="snowTime"><button data-v="45">45초</button><button data-v="60">60초</button><button data-v="90">90초</button></div>
@@ -92,8 +134,8 @@
   <div class="modal-back" id="m-trophy">
     <div class="modal pixel-box">
       <button class="close" data-close>✕</button>
-      <h2><img class="px" src="shared/assets/trophy.png" alt="" /> 기록</h2>
-      <ol class="rank-list" id="rank-list"></ol>
+      <h2><img class="px" src="shared/assets/trophy.png" alt="" /> 내 기록</h2>
+      <div class="my-stats" id="my-stats"></div>
       <div class="row-label">최근 경기</div>
       <ul class="recent" id="recent"></ul>
     </div>
@@ -104,22 +146,21 @@
     <div class="modal pixel-box letter-paper">
       <button class="close" data-close>✕</button>
       <h2><img class="px" src="shared/assets/letter.png" alt="" /> 게임 방법</h2>
-      <p>친구랑 <b>카메라 앞에 나란히</b> 서거나 앉아요. 화면 <b>왼쪽이 P1</b>, <b>오른쪽이 P2</b>예요.</p>
+      <p>닉네임 쓰고 캐릭터 고르고 <b>START</b> →<br /><b>🎁 친구 초대하기</b>: 링크를 친구에게 보내면, 친구는 자기 컴퓨터 카메라로 들어와요.<br /><b>🤖 AI랑 하기</b>: 혼자서도 OK!</p>
       <h3>🎅 산타 포커페이스</h3>
       <ul>
-        <li>양쪽에 각자 얼굴이 크게 떠요</li>
         <li>웃거나 눈을 깜빡이면 <b>하트 -1</b></li>
-        <li>방해 요소(이모지, 아재개그, 얼굴 필터, 효과음)가 점점 세져요</li>
-        <li>하트를 먼저 다 잃는 사람이 패배!</li>
+        <li>방해 요소(이모지·아재개그·얼굴 필터·효과음)가 점점 세져요</li>
+        <li>먼저 하트를 다 잃으면 패배!</li>
       </ul>
       <h3>☃️ 크리스마스 눈싸움</h3>
       <ul>
         <li>❄️ 내리는 눈에 손을 대서 받기</li>
         <li>🌀 손을 빙글빙글 돌려 눈덩이 키우기</li>
-        <li>💨 친구 쪽으로 팔을 휙! 휘둘러 던지기</li>
-        <li>😎 내 얼굴에 빨간 조준점이 뜨면 피하기 · 맞으면 하트 -1</li>
+        <li>💨 친구 화면 쪽으로 팔을 휙! 던지기</li>
+        <li>😎 빨간 조준점이 내 얼굴에 뜨면 피하기 · 맞으면 하트 -1</li>
       </ul>
-      <p class="small">💡 카메라에서 2~3m 떨어져야 손까지 잘 보여요. 게임 중 D 키를 누르면 인식 값이 보여요.</p>
+      <p class="small">💡 눈싸움은 카메라에서 2m쯤 떨어져야 손까지 보여요.</p>
     </div>
   </div>
 
@@ -128,10 +169,12 @@
     <div class="modal pixel-box">
       <button class="close" data-close>✕</button>
       <h2><img class="px" src="shared/assets/wallet.png" alt="" /> 지갑</h2>
-      <ul class="coin-list" id="coin-list"></ul>
-      <p class="small">승리 +10 · 참가 +2 코인</p>
+      <div class="wallet-big" id="wallet-big"></div>
+      <p class="small">이기면 +12 · 지거나 비기면 +2 코인</p>
     </div>
   </div>
+
+  <video id="video" playsinline muted></video>
 
   <script>
     if (location.protocol === "file:") {
@@ -140,7 +183,8 @@
       });
     }
   </script>
+  <script src="lib/peerjs/peerjs.min.js"></script>
   <script type="module" src="shared/xmas.js"></script>
-  <script type="module" src="home.js"></script>
+  <script type="module" src="src/app.js"></script>
 </body>
 </html>
