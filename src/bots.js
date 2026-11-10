@@ -3,15 +3,16 @@
 import { Emitter } from "./net.js";
 import { drawNight, drawTag, drawSprite, PW, PH } from "./panel.js";
 import { snowball, pointsFor } from "./snowball/game.js";
+import { rope } from "./tug/game.js";
 import { charImg } from "../shared/profile.js";
 
 const rand = (a, b) => a + Math.random() * (b - a);
 
 // 난이도 → AI 실력 (어려울수록 잘 피하고, 잘 맞히고, 자주 던짐)
 const SKILL = {
-  easy: { dodge: 0.25, aim: 0.35, throwGap: [3600, 5200] },
-  normal: { dodge: 0.45, aim: 0.6, throwGap: [2800, 4400] },
-  hard: { dodge: 0.65, aim: 0.85, throwGap: [2200, 3400] },
+  easy: { dodge: 0.25, aim: 0.35, throwGap: [3600, 5200], pull: 0.35 },
+  normal: { dodge: 0.45, aim: 0.6, throwGap: [2800, 4400], pull: 0.5 },
+  hard: { dodge: 0.65, aim: 0.85, throwGap: [2200, 3400], pull: 0.7 },
 };
 
 export class BotLink extends Emitter {
@@ -53,7 +54,7 @@ export class BotLink extends Emitter {
     const m = { t, ...data };
     if (t === "game") {
       this.bot?.stop?.();
-      this.bot = new SnowBot(this, m.settings);
+      this.bot = m.game === "tug" ? new TugBot(this) : new SnowBot(this, m.settings);
     }
     if (t === "lobby") {
       this.bot?.stop?.();
@@ -179,6 +180,64 @@ class SnowBot {
         g.arc(this.head.x + Math.cos(i * 1.7) * 30, this.head.y + Math.sin(i * 2.3) * 26, 16, 0, Math.PI * 2);
         g.fill();
       }
+    }
+    drawTag(g, `🤖 ${L.nick}`, charImg(L.char), "#2ecc71");
+  }
+  stop() {
+    this.state = "over";
+  }
+}
+
+// ───────── 🪢 줄다리기 AI ─────────
+class TugBot {
+  constructor(link) {
+    this.link = link;
+    this.state = "ready";
+    this.total = 0;
+    this.phase = 0;
+    this.lastNow = performance.now();
+    this.lastSend = 0;
+    this.burstUntil = 0;
+    setTimeout(() => link.reply("tw:ready"), 1200);
+  }
+  receive(m) {
+    if (m.t === "tw:go") {
+      this.state = "countdown";
+      setTimeout(() => this.state === "countdown" && (this.state = "play"), 3000);
+    }
+    if (m.t === "tw:end") this.state = "over";
+  }
+  draw(now) {
+    const dt = Math.min(0.05, (now - this.lastNow) / 1000);
+    this.lastNow = now;
+    const L = this.link, g = L.g;
+    let pulling = false;
+    if (this.state === "play") {
+      // 기본 속도 + 가끔 힘내기(버스트) + 가끔 지침
+      if (now > this.burstUntil && Math.random() < dt * 0.4) this.burstUntil = now + rand(800, 2000);
+      const boost = now < this.burstUntil ? 1.7 : 1;
+      const tired = Math.sin(now / 2300) < -0.7 ? 0.4 : 1;
+      const rate = L.skill.pull * boost * tired * rand(0.7, 1.3);
+      this.total += rate * dt;
+      this.phase += dt * (4 + rate * 6);
+      pulling = true;
+    }
+    if (now - this.lastSend > 100) {
+      this.lastSend = now;
+      L.reply("tw:pull", { total: this.total });
+    }
+    drawNight(g, now);
+    // 캐릭터가 오른쪽으로 몸을 젖히며 당기기 (AI 패널은 항상 오른쪽)
+    const lean = pulling ? Math.sin(this.phase) * 18 + 20 : 0;
+    const cx = PW / 2 + lean;
+    rope(g, -10, PH * 0.62, cx - 40, PH * 0.6 + Math.sin(this.phase) * 6, 12);
+    drawSprite(g, charImg(L.char, pulling && now < this.burstUntil), cx, PH - 24, 300);
+    if (pulling && now < this.burstUntil) {
+      g.font = `700 28px "Galmuri11", sans-serif`;
+      g.fillStyle = "#ffd23f";
+      g.textAlign = "center";
+      g.fillText("영차! 영차!", cx, 60);
+      g.textAlign = "start";
     }
     drawTag(g, `🤖 ${L.nick}`, charImg(L.char), "#2ecc71");
   }

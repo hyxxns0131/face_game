@@ -6,6 +6,7 @@ import { OnlineLink, roomFromUrl, friendlyNetError } from "./net.js";
 import { BotLink } from "./bots.js";
 import { drawCameraCover, drawTag, drawNight, PW, PH } from "./panel.js";
 import { startSnowball } from "./snowball/game.js";
+import { startTug } from "./tug/game.js";
 
 const $ = (s) => document.querySelector(s);
 let profile = loadProfile();
@@ -219,7 +220,7 @@ const hud = {
   },
   score(who, n, pop = false) {
     const el = $(`#pl-${sideOf(who)} .score`);
-    el.textContent = n === null ? "" : `⭐ ${n}점`;
+    el.textContent = n === null ? "" : typeof n === "string" ? `💪 ${n}` : `⭐ ${n}점`;
     el.classList.toggle("big", n !== null);
     if (pop) {
       el.classList.remove("pop");
@@ -328,7 +329,7 @@ function wireLink() {
     renderPlayers();
     sfx.beep(true);
     if (room.mode !== "guest") showGamePicker();
-    else lobby(`<h2>🎄 ${escapeHtml(room.opp.nick)}님 방에 들어왔어요!</h2><p>카메라에서 2m쯤 떨어져서 상체와 두 손이 보이게 서 주세요.</p><p class="dots">방장이 시작하길 기다리는 중</p>`);
+    else lobby(`<h2>🎄 ${escapeHtml(room.opp.nick)}님 방에 들어왔어요!</h2><p>카메라에서 2m쯤 떨어져서 상체와 두 손이 보이게 서 주세요.</p><p class="dots">방장이 게임을 고르는 중</p>`);
   });
   L.on("stream", (s) => {
     const v = document.createElement("video");
@@ -344,7 +345,7 @@ function wireLink() {
     if (room.mode !== "guest") return;
     stopGame();
     $("#result").classList.remove("open");
-    lobby(`<h2>🎄 잠깐 쉬는 중</h2><p class="dots">방장이 시작하길 기다리는 중</p>`);
+    lobby(`<h2>🎄 다음 게임 고르는 중</h2><p class="dots">방장이 게임을 고르는 중</p>`);
   });
   L.on("full", () => lobby(`<h2>😢 방이 꽉 찼어요</h2><p>이미 두 명이 게임 중이에요.</p><button class="pixel-btn" data-act="home">홈으로</button>`));
   const gone = () => {
@@ -363,9 +364,10 @@ function wireLink() {
 function showGamePicker() {
   const s = settingsSnapshot();
   lobby(`
-    <h2>☃️ 눈싸움 준비 완료!</h2>
+    <h2>🎄 무슨 게임 할까?</h2>
     <p>${escapeHtml(room.me.nick)} VS ${room.opp.ai ? "🤖 " : ""}${escapeHtml(room.opp.nick)}</p>
-    <button class="game-card pixel-box" data-act="game" data-game="snowball"><span class="g-emoji">☃️</span><span class="g-text"><b>크리스마스 눈싸움 시작!</b><small>60초 점수 대결 · 크게 굴려 맞힐수록 점수 UP (1~10점) · 2m쯤 떨어져 서기</small></span></button>
+    <button class="game-card pixel-box" data-act="game" data-game="snowball"><span class="g-emoji">☃️</span><span class="g-text"><b>크리스마스 눈싸움</b><small>60초 점수 대결 · 크게 굴려 맞힐수록 점수 UP (1~10점) · 2m쯤 떨어져 서기</small></span></button>
+    <button class="game-card pixel-box" data-act="game" data-game="tug"><span class="g-emoji">🪢</span><span class="g-text"><b>크리스마스 줄다리기</b><small>30초 동안 줄을 더 빨리·많이 당기는 사람이 승리 · 실시간 승부 상황</small></span></button>
     <p class="small">💡 둘 다 카메라에서 2m쯤 떨어져서 상체와 두 손이 보이게 서 주세요.</p>
   `);
 }
@@ -470,7 +472,7 @@ async function startGame(name, settings) {
   lobby(null);
   $("#result").classList.remove("open");
   $("#mode-chip").textContent = `${GAMES[name].emoji} ${GAMES[name].name}`;
-  $("#foot-hint").textContent = true ? "💡 60초 점수 대결! 크게 굴릴수록 점수 UP · 손 위치로 상대 화면의 🎯조준점을 움직여 얼굴에 맞추고(LOCK ON) 상대 쪽으로 휙! (스페이스바도 OK)" : "💡 정면을 보고 표정을 꾹 참아요";
+  $("#foot-hint").textContent = name === "tug" ? "💡 30초! 손을 상대 반대쪽으로 번갈아 확확 당겨요 (아래로 당겨도 조금 인정) · 손이 잘 안 잡히면 F·J 키 번갈아 누르기" : "💡 60초 점수 대결! 크게 굴릴수록 점수 UP · 손 위치로 상대 화면의 🎯조준점을 움직여 얼굴에 맞추고(LOCK ON) 상대 쪽으로 휙! (스페이스바도 OK)";
   hud.score("me", null);
   hud.score("opp", null);
 
@@ -509,12 +511,12 @@ async function startGame(name, settings) {
     },
     panelRect(who) {
       const a = arena.getBoundingClientRect();
-      const r = panelEl(who).getBoundingClientRect();
+      const r = (who === "left" || who === "right" ? $(`#panel-${who}`) : panelEl(who)).getBoundingClientRect();
       return { x: r.left - a.left, y: r.top - a.top, w: r.width, h: r.height };
     },
     onEnd: (res) => showResult(res),
   };
-  const starter = startSnowball;
+  const starter = name === "tug" ? startTug : startSnowball;
   const token = {};
   room.token = token;
   const game = await starter(ctx);
@@ -643,7 +645,7 @@ async function showResult(res) {
   $("#r-coins").textContent = `🪙 +${gain} 코인 (지금 ${profile.coins})`;
   $("#r-btns").innerHTML =
     room.mode === "guest"
-      ? `<p class="small dots">방장이 한 판 더 할지 고르는 중</p><button class="pixel-btn white" data-act="home">나가기</button>`
-      : `<button class="pixel-btn" data-act="again">한 판 더!</button><button class="pixel-btn white" data-act="home">나가기</button>`;
+      ? `<p class="small dots">방장이 다음 게임을 고르는 중</p><button class="pixel-btn white" data-act="home">나가기</button>`
+      : `<button class="pixel-btn" data-act="again">한 판 더!</button><button class="pixel-btn white" data-act="pick">다른 게임</button><button class="pixel-btn white" data-act="home">나가기</button>`;
   $("#result").classList.add("open");
 }

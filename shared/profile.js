@@ -10,6 +10,7 @@ export const CHARACTERS = [
 
 export const GAMES = {
   snowball: { name: "크리스마스 눈싸움", emoji: "☃️" },
+  tug: { name: "크리스마스 줄다리기", emoji: "🪢" },
 };
 
 const KEY = "xmas.profile.v1";
