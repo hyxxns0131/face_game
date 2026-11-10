@@ -1,8 +1,9 @@
 // ☃️ 눈덩이 대작전
 // 받기(눈송이에 손 대기) → 굴리기(손을 원 모양으로) → 던지기(상대 쪽으로 휙) → 피하기(빨간 조준점에서 벗어나기)
 import { initPose, detectPoses } from "./pose.js";
-import { startCamera, stopCamera } from "../../src/camera.js";
-import { Sfx } from "../../src/sfx.js";
+import { startCamera } from "../../shared/camera.js";
+import { Sfx } from "../../shared/sfx.js";
+import { loadProfile, charOf, asset, heartsHTML, recordMatch } from "../../shared/profile.js";
 
 // ───────── 조정 가능한 값 (640px 화면 기준) ─────────
 const CFG = {
@@ -22,14 +23,15 @@ const $ = (s) => document.querySelector(s);
 const video = $("#video");
 const cv = $("#cv");
 const ctx = cv.getContext("2d");
-const stageEl = $("#stage");
 const centerMsg = $("#center-msg");
 const debugEl = $("#debug");
+const prof = loadProfile();
 const sfx = new Sfx();
+sfx.enabled = prof.sound;
 
 let W = 640, H = 480, S = 1;
-const settings = { mode: "duo", time: 60, sound: true };
-let state = "home"; // home | loading | ready | countdown | play | result | error
+const settings = { mode: "duo", time: prof.snowTime };
+let state = "intro"; // intro | loading | ready | countdown | play | result | error
 let camOn = false, poseReady = false, looping = false;
 let players = [];
 let flakes = [], shots = [], texts = [], splats = [], puffs = [];
@@ -41,13 +43,19 @@ const rand = (a, b) => a + Math.random() * (b - a);
 
 // ───────── 플레이어 ─────────
 class Player {
-  constructor(name, color, side) {
+  constructor(name, color, side, char = null) {
     this.name = name;
     this.color = color;
     this.side = side; // "L" 왼쪽(오른쪽으로 던짐) | "R"
+    this.char = char;
+    if (char) {
+      this.img = new Image();
+      this.img.src = asset(char.img);
+    }
     this.reset();
   }
   reset() {
+    this.hearts = prof.hearts;
     this.score = 0; this.hits = 0; this.throws = 0; this.dodges = 0; this.taken = 0; this.maxR = 0;
     this.present = false; this.head = null; this.headR = 40 * S;
     this.hand = null; this.handIdx = null; this.hist = [];
@@ -174,6 +182,8 @@ function resolveShot(s, now) {
     s.owner.score += pts;
     s.owner.hits++;
     d.taken++;
+    d.hearts = Math.max(0, d.hearts - 1);
+    renderTopbar(d);
     splats.push({ who: d, t0: now, r: endR, blobs: makeBlobs(endR) });
     texts.push({ text: `명중! +${pts}`, x: s.to.x, y: s.to.y - endR, color: s.owner.color, t0: now, big: true });
     sfx.honk();
@@ -184,7 +194,7 @@ function resolveShot(s, now) {
     texts.push({ text: "회피! 😎", x: s.to.x, y: s.to.y - endR, color: "#e0f2fe", t0: now });
     sfx.boing();
   }
-  updateScorebar();
+  renderTopbar();
 }
 
 function makeBlobs(r) {
@@ -193,7 +203,7 @@ function makeBlobs(r) {
 
 // ───────── 연습용 눈사람 봇 ─────────
 function makeBot() {
-  const b = new Player("눈사람 봇", "#7dd3fc", "R");
+  const b = new Player("SNOWMAN", "#7dd3fc", "R");
   b.isBot = true;
   b.nextThrow = 0;
   return b;
@@ -221,48 +231,42 @@ function stepBot(b, opp, dt, now) {
   }
 }
 
-// ───────── 화면 전환 ─────────
-function showScreen(name) {
-  document.querySelectorAll(".screen").forEach((s) => s.classList.toggle("active", s.id === `screen-${name}`));
-}
+// ───────── 화면 / 시작 ─────────
 function msg(html, dim = false) {
   centerMsg.innerHTML = html;
   centerMsg.classList.toggle("dim", dim);
 }
 
-function segment(sel, key, onChange) {
-  const el = $(sel);
-  el.addEventListener("click", (e) => {
-    const b = e.target.closest("button");
-    if (!b) return;
-    el.querySelectorAll("button").forEach((x) => x.classList.toggle("on", x === b));
-    onChange(b.dataset[key]);
-  });
+const C1 = charOf(prof.p1), C2 = charOf(prof.p2);
+function makePlayers() {
+  players = [
+    new Player(C1.name, "#ff3f78", "L", C1),
+    settings.mode === "solo" ? makeBot() : new Player(C2.name, "#8b6cff", "R", C2),
+  ];
 }
-segment("#mode-seg", "mode", (v) => {
-  settings.mode = v;
-  $("#name2").closest("label").hidden = v === "solo";
-});
-segment("#time-seg", "time", (v) => (settings.time = Number(v)));
 
-try {
-  $("#name1").value = localStorage.getItem("snow.name1") || "";
-  $("#name2").value = localStorage.getItem("snow.name2") || "";
-} catch {}
+function renderIntro() {
+  const fig = (img, name) => `<figure><img class="char px small" src="${img}" alt=""><figcaption>${name}</figcaption></figure>`;
+  const right = settings.mode === "solo" ? `<figure><span style="font-size:80px;line-height:110px">☃️</span><figcaption>SNOWMAN</figcaption></figure>` : fig(asset(C2.img), C2.name);
+  $("#intro-chars").innerHTML = fig(asset(C1.img), C1.name) + `<span class="vs-mini">VS</span>` + right;
+  $("#intro-info").innerHTML = `하트 <b>${prof.hearts}개</b> · 라운드 <b>${settings.time}초</b> · 맞으면 하트 -1`;
+}
+
+$("#mode-pick").addEventListener("click", (e) => {
+  const b = e.target.closest("button");
+  if (!b) return;
+  settings.mode = b.dataset.v;
+  $("#mode-pick").querySelectorAll("button").forEach((x) => x.classList.toggle("on", x === b));
+  makePlayers();
+  renderIntro();
+  renderTopbar();
+});
 
 $("#btn-start").addEventListener("click", async () => {
-  settings.sound = $("#sound").checked;
-  sfx.enabled = settings.sound;
   sfx.unlock();
-  const n1 = $("#name1").value.trim() || "P1";
-  const n2 = $("#name2").value.trim() || "P2";
-  try { localStorage.setItem("snow.name1", n1); localStorage.setItem("snow.name2", n2); } catch {}
-
-  showScreen("game");
-  const ok = await ensureReady();
-  if (!ok) return;
-  players = [new Player(n1, "#ffb703", "L"), settings.mode === "solo" ? makeBot() : new Player(n2, "#7dd3fc", "R")];
-  beginReady();
+  $("#intro").classList.remove("open");
+  makePlayers();
+  if (await ensureReady()) beginReady();
 });
 
 async function ensureReady() {
@@ -275,7 +279,8 @@ async function ensureReady() {
       W = cv.width = video.videoWidth;
       H = cv.height = video.videoHeight;
       S = W / 640;
-      stageEl.style.aspectRatio = `${W} / ${H}`;
+      $("#stage").style.aspectRatio = `${W} / ${H}`;
+      players.forEach((p) => p.reset());
     }
     if (!poseReady) {
       msg("🧠 몸 인식 모델 불러오는 중…<small>처음 한 번만 몇 초 걸려요</small>", true);
@@ -291,7 +296,7 @@ async function ensureReady() {
       name === "NotFoundError" ? "카메라를 찾을 수 없어요." :
       name === "NotReadableError" ? "다른 프로그램이 카메라를 쓰고 있어요." :
       "준비 중 문제가 생겼어요: " + (err?.message || err);
-    msg(`⚠️ ${text}<small>아래 [처음으로]를 눌러 다시 시도해 주세요</small>`, true);
+    msg(`⚠️ ${text}<small>왼쪽 위 화살표로 홈에 갔다가 다시 시도해 주세요</small>`, true);
     return false;
   }
   if (!looping) {
@@ -305,7 +310,7 @@ async function ensureReady() {
 function beginReady() {
   flakes = []; shots = []; texts = []; splats = []; puffs = [];
   players.forEach((p) => p.reset());
-  updateScorebar();
+  renderTopbar();
   $("#clock").textContent = settings.time;
   $("#clock").classList.remove("hurry");
   readySince = null;
@@ -325,13 +330,19 @@ function beginPlay(now) {
   if (players[1].isBot) players[1].nextThrow = now + 3000;
 }
 
-function updateScorebar() {
+function renderTopbar(popPlayer = null) {
   const [a, b] = players;
   if (!a) return;
-  $("#sb-name1").textContent = a.name;
-  $("#sb-name2").textContent = b.name;
-  $("#sb-score1").textContent = a.score;
-  $("#sb-score2").textContent = b.score;
+  [[a, "#pl1"], [b, "#pl2"]].forEach(([p, sel]) => {
+    const el = $(sel);
+    const ava = el.querySelector(".ava");
+    if (p.char) { ava.src = asset(p.char.img); ava.hidden = false; } else ava.hidden = true;
+    el.querySelector(".name").textContent = p.isBot ? "☃️ SNOWMAN" : p.name;
+    const h = el.querySelector(".hearts");
+    h.innerHTML = heartsHTML(p.hearts, prof.hearts);
+    if (p === popPlayer) h.querySelectorAll("img")[p.hearts]?.classList.add("pop");
+    el.querySelector(".score").textContent = `⭐ ${p.score}`;
+  });
 }
 
 // ───────── 메인 루프 ─────────
@@ -358,6 +369,7 @@ function loop(now) {
     if (!p2.isBot) stepPlayer(p2, p1, dt, now);
     for (const s of shots) if (!s.done && now - s.t0 >= s.dur) { s.done = true; resolveShot(s, now); }
     shots = shots.filter((s) => !s.done);
+    if (players.some((p) => p.hearts <= 0)) return endGame();
 
     const left = settings.time - (now - playStart) / 1000;
     $("#clock").textContent = Math.max(0, Math.ceil(left));
@@ -518,7 +530,7 @@ function draw(now, poses) {
   for (const t of texts) {
     const k = (now - t.t0) / 1100;
     ctx.globalAlpha = 1 - k;
-    ctx.font = `900 ${(t.big ? 34 : 26) * S}px "Malgun Gothic", sans-serif`;
+    ctx.font = `900 ${(t.big ? 34 : 26) * S}px "Galmuri11", "Malgun Gothic", sans-serif`;
     ctx.lineWidth = 6 * S;
     ctx.strokeStyle = "rgba(0,0,0,.7)";
     ctx.strokeText(t.text, t.x, t.y - k * 40 * S);
@@ -545,10 +557,16 @@ function drawPlayer(p, now) {
   ctx.save();
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.font = `800 ${18 * S}px "Malgun Gothic", sans-serif`;
+  ctx.font = `700 ${18 * S}px "Galmuri11", "Malgun Gothic", sans-serif`;
   const label = p.name;
   const tw = ctx.measureText(label).width + 16 * S;
   const ty = p.head.y - p.headR * 2.2;
+  if (p.img?.complete && p.img.naturalWidth) {
+    const ah = 46 * S, aw = (ah * p.img.naturalWidth) / p.img.naturalHeight;
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(p.img, p.head.x - tw / 2 - aw - 2 * S, ty - ah + 13 * S, aw, ah);
+    ctx.imageSmoothingEnabled = true;
+  }
   ctx.fillStyle = p.color;
   ctx.beginPath();
   ctx.roundRect(p.head.x - tw / 2, ty - 13 * S, tw, 26 * S, 13 * S);
@@ -582,7 +600,7 @@ function drawPlayer(p, now) {
   ctx.stroke();
   if (ready && state === "play") {
     ctx.textAlign = "center";
-    ctx.font = `800 ${14 * S}px "Malgun Gothic", sans-serif`;
+    ctx.font = `800 ${14 * S}px "Galmuri11", "Malgun Gothic", sans-serif`;
     ctx.fillStyle = "#fff";
     ctx.strokeStyle = "rgba(0,0,0,.6)";
     ctx.lineWidth = 4 * S;
@@ -620,22 +638,23 @@ function endGame() {
   msg("");
   sfx.fail();
   const [a, b] = players;
-  const title = a.score === b.score ? "🤝 무승부!" : `🏆 ${(a.score > b.score ? a : b).name} 승리!`;
-  $("#result-title").textContent = title;
-  const card = (p, win) => `
-    <div class="result-card ${win ? "win" : ""}">
-      <h3 style="color:${p.color}">${win ? "👑 " : ""}${escapeHtml(p.name)}</h3>
-      <div class="big">${p.score}<small style="font-size:18px"> 점</small></div>
-      <dl>
-        <dt>던진 눈덩이</dt><dd>${p.throws}개</dd>
-        <dt>명중</dt><dd>${p.hits}번</dd>
-        <dt>피한 횟수</dt><dd>${p.dodges}번</dd>
-        <dt>맞은 횟수</dt><dd>${p.taken}번</dd>
-        <dt>최대 눈덩이</dt><dd>${p.maxR ? Math.round((p.maxR / S) * 2) + " cm" : "-"}</dd>
-      </dl>
-    </div>`;
-  $("#result-grid").innerHTML = card(a, a.score > b.score) + card(b, b.score > a.score);
-  showScreen("result");
+  // 승부: 하트가 많이 남은 쪽 → 같으면 점수(⭐) → 같으면 무승부
+  const cmp = a.hearts - b.hearts || a.score - b.score;
+  const w = cmp > 0 ? a : cmp < 0 ? b : null;
+  const l = w ? (w === a ? b : a) : null;
+  if (!a.isBot && !b.isBot) {
+    recordMatch({ game: "snowball", winner: w ? (w === a ? "p1" : "p2") : null, p1: prof.p1, p2: prof.p2, detail: `⭐${a.score}:${b.score}` });
+  }
+  const fig = (p, cls = "") =>
+    p.isBot
+      ? `<figure class="${cls}"><span style="font-size:${cls ? 70 : 110}px;line-height:1">☃️</span><figcaption>SNOWMAN</figcaption></figure>`
+      : `<figure class="${cls}">${cls ? "" : w ? '<span class="crown">👑</span>' : ""}<img class="char px" src="${asset(p.char.img)}" alt=""><figcaption>${escapeHtml(p.name)}</figcaption></figure>`;
+  $("#r-title").textContent = w ? `${w.isBot ? "SNOWMAN" : w.name} WIN!` : "DRAW!";
+  $("#r-chars").innerHTML = w ? fig(w) + fig(l, "lose") : fig(a) + fig(b);
+  const line = (p) => `${p.isBot ? "SNOWMAN" : escapeHtml(p.name)}: ♥${p.hearts} · ⭐${p.score} · 명중 ${p.hits}/${p.throws} · 회피 ${p.dodges} · 최대 ${p.maxR ? Math.round((p.maxR / S) * 2) + "cm" : "-"}`;
+  $("#r-stats").innerHTML = `${line(a)}<br>${line(b)}`;
+  $("#r-coins").textContent = a.isBot || b.isBot ? "연습 모드는 코인이 쌓이지 않아요" : w ? `🪙 ${w.name} +12 · ${l.name} +2` : "🪙 둘 다 +2";
+  setTimeout(() => $("#result").classList.add("open"), 600);
 }
 
 function escapeHtml(s) {
@@ -644,18 +663,9 @@ function escapeHtml(s) {
 
 $("#btn-again").addEventListener("click", () => {
   sfx.unlock();
-  showScreen("game");
+  $("#result").classList.remove("open");
   beginReady();
 });
-
-function goHome() {
-  state = "home";
-  msg("");
-  if (camOn) { stopCamera(video); camOn = false; }
-  showScreen("home");
-}
-$("#btn-home").addEventListener("click", goHome);
-$("#btn-quit").addEventListener("click", goHome);
 
 // ───────── 디버그 (D 키) ─────────
 document.addEventListener("keydown", (e) => {
@@ -675,3 +685,7 @@ function renderDebug(poses) {
   };
   debugEl.textContent = `인식된 사람: ${poses.length}명  화면 ${W}x${H}\n${line(players[0])}\n${players[1]?.isBot ? "" : line(players[1])}`;
 }
+
+makePlayers();
+renderIntro();
+renderTopbar();

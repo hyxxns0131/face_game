@@ -1,77 +1,34 @@
-/* 포커페이스 챌린지 style.css 위에 덮어쓰는 눈싸움 테마 */
-body.snow {
-  --accent: #7dd3fc;
-  --accent2: #ff6b6b;
-  --p1: #ffb703;
-  --p2: #7dd3fc;
-  background: radial-gradient(circle at 30% 0%, #1e3a5f, #0b1424 65%);
+.stage {
+  position: relative;
+  width: min(1180px, calc(100% - 32px), calc((100vh - 160px) * 4 / 3));
+  margin: 6px auto 0;
+  aspect-ratio: 4 / 3;
+  background: #0a1a33;
+  box-shadow: 0 -6px 0 0 var(--line), 0 6px 0 0 var(--line), -6px 0 0 0 var(--line), 6px 0 0 0 var(--line), 0 12px 0 0 rgba(0, 0, 0, .25);
 }
-body.snow button.primary {
-  background: linear-gradient(135deg, #e0f2fe, #7dd3fc);
-  color: #0b2540;
-  box-shadow: 0 6px 0 #2b6a99;
-}
-body.snow button.primary:active { box-shadow: 0 3px 0 #2b6a99; }
-body.snow .seg button.on { background: #7dd3fc; color: #0b2540; }
+#video { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+#cv { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 
-.names { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.names[hidden], .names label[hidden] { display: none; }
-.names input {
-  font: inherit;
-  font-size: 17px;
-  padding: 10px 12px;
-  border-radius: 12px;
-  border: 1px solid var(--line);
-  background: #15122a;
-  color: var(--ink);
-  width: 100%;
-}
+.pl .score { font-weight: 700; color: var(--gold); text-shadow: 2px 2px 0 var(--line); font-size: 15px; }
+#pl1 .name { color: #ffd0de; }
+#pl2 .name { color: #ddd3ff; }
 
-.howto { text-align: left; max-width: 560px; color: var(--ink); line-height: 1.9; font-size: 15px; padding-left: 22px; margin: 4px 0 0; }
-.howto b { color: var(--accent); }
+.foot-hint { text-align: center; color: #fff; font-size: 13px; text-shadow: 1px 1px 0 var(--line); margin: 14px 0; }
 
-#cv {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-#video { opacity: 0; } /* 영상은 캔버스에 직접 그림 */
+.howto { text-align: left; font-size: 14px; line-height: 1.9; margin: 12px 0 6px; padding-left: 22px; }
+#intro .pick { margin-top: 4px; }
+#intro .start-btn { width: 70%; margin-top: 6px; }
+.result .winner img.char.small { height: 110px; }
+.result .vs-mini { font-weight: 700; font-size: 24px; color: var(--pink); align-self: center; }
 
-.scorebar {
-  width: 100%;
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  gap: 12px;
+#debug {
+  position: fixed;
+  left: 10px;
+  bottom: 10px;
+  background: rgba(0, 0, 0, .8);
+  color: #fff;
+  font: 12px/1.5 Consolas, monospace;
+  padding: 8px 10px;
+  white-space: pre;
+  z-index: 60;
 }
-.sb { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 20px; }
-.sb b { font-size: 40px; font-variant-numeric: tabular-nums; }
-.sb.p1 { color: var(--p1); }
-.sb.p2 { color: var(--p2); justify-content: flex-end; }
-#clock {
-  font-size: 34px;
-  font-weight: 900;
-  font-variant-numeric: tabular-nums;
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  padding: 4px 18px;
-  min-width: 90px;
-}
-#clock.hurry { color: var(--accent2); }
-
-.result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; width: min(560px, 100%); }
-.result-card {
-  background: var(--card);
-  border: 2px solid var(--line);
-  border-radius: 18px;
-  padding: 18px;
-  text-align: left;
-}
-.result-card.win { border-color: var(--accent); box-shadow: 0 0 30px rgba(125, 211, 252, .3); }
-.result-card h3 { margin: 0 0 6px; font-size: 20px; }
-.result-card .big { font-size: 52px; font-weight: 900; }
-.result-card dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 8px 0 0; color: var(--muted); }
-.result-card dd { margin: 0; color: var(--ink); font-weight: 700; text-align: right; }

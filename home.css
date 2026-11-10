@@ -1,0 +1,166 @@
+/* 홈 화면: 보내주신 UI 이미지(세로 9:16)의 배치를 그대로 옮김 */
+body { display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+
+.phone {
+  position: relative;
+  height: min(100vh, 177.78vw);
+  aspect-ratio: 9 / 16;
+  container-type: inline-size;
+}
+.phone > * { position: absolute; }
+.phone img { width: 100%; display: block; }
+
+/* 상단 */
+.hearts-btn { left: 3%; top: 2.4%; }
+.hearts-btn .hearts { gap: 1.2cqw; }
+.hearts-btn .hearts img.heart { height: 9.6cqw; width: auto; }
+.hearts-btn .hearts.many img.heart { height: 7cqw; }
+.trophy { left: 66%; top: 1.6%; width: 12.6%; }
+.gear { left: 83.2%; top: 1.4%; width: 13.6%; }
+
+/* 캐릭터 */
+.carousel { inset: 0; pointer-events: none; }
+.slot {
+  position: absolute;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.slot .char { width: 100%; filter: drop-shadow(0 1cqw 0 rgba(0, 0, 0, .12)); }
+.slot .item { position: absolute; animation: bob 1.2s steps(2) infinite; }
+.slot.center { left: 34.7%; top: 26.4%; width: 30.4%; }
+.slot.center .item { bottom: calc(100% + 5%); }
+.slot.left { left: 4.5%; top: 36.4%; width: 20.5%; }
+.slot.left .item { bottom: calc(100% + 4%); animation-delay: .4s; }
+.slot.right { left: 75.4%; top: 36%; width: 19.1%; }
+.slot.right .item { bottom: calc(100% + 4%); animation-delay: .8s; }
+.slot.left:hover .char, .slot.right:hover .char { transform: translateY(-1.5cqw); }
+.slot.center .char { animation: idle 1.6s steps(2) infinite; }
+.carousel.swap .slot .char { animation: pop .25s steps(4); }
+
+.arrow { top: 60.2%; width: 12.8%; }
+.arrow.left { left: 24.6%; }
+.arrow.right { left: 62%; }
+.char-name {
+  left: 37%;
+  right: 37%;
+  top: 61.6%;
+  text-align: center;
+  font-weight: 700;
+  font-size: 6.4cqw;
+  letter-spacing: 1.6cqw;
+  color: #000;
+}
+
+/* P1 / P2 선택 탭 */
+.players {
+  left: 10%;
+  right: 10%;
+  top: 67.4%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3cqw;
+}
+.ptab {
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  gap: 1.6cqw;
+  background: rgba(255, 255, 255, .8);
+  border: 0;
+  padding: 1.4cqw 2.6cqw;
+  cursor: pointer;
+  font-size: 3.6cqw;
+  font-weight: 700;
+  color: var(--ink);
+  box-shadow: 0 -.8cqw 0 0 var(--line), 0 .8cqw 0 0 var(--line), -.8cqw 0 0 0 var(--line), .8cqw 0 0 0 var(--line);
+}
+.ptab .tag { color: #fff; padding: .4cqw 1.2cqw; }
+.ptab[data-p="p1"] .tag { background: var(--p1); }
+.ptab[data-p="p2"] .tag { background: var(--p2); }
+.ptab.on { background: #fff; transform: translateY(-.6cqw); }
+.ptab.on::after { content: "◀"; font-size: 2.6cqw; color: var(--pink); animation: blink .6s steps(2) infinite; }
+.ptab[data-p="p2"].on::after { order: -1; content: "▶"; }
+.players .vs { font-weight: 700; font-size: 4.4cqw; color: #fff; text-shadow: .5cqw .5cqw 0 var(--line); }
+
+.start-btn { left: 15.4%; top: 73.2%; width: 69.2%; }
+
+.letter { left: 4.4%; top: 90.3%; width: 14.6%; }
+.wallet { left: 80.8%; top: 88.6%; width: 16.6%; }
+.coin-badge {
+  position: absolute;
+  right: -1cqw;
+  bottom: -1cqw;
+  background: var(--gold);
+  color: var(--ink);
+  font-weight: 700;
+  font-size: 3cqw;
+  padding: .4cqw 1.4cqw;
+  box-shadow: 0 0 0 .6cqw var(--line);
+}
+
+.file-warning {
+  left: 8%;
+  right: 8%;
+  top: 46%;
+  background: #fff;
+  padding: 3cqw;
+  text-align: center;
+  font-weight: 700;
+  font-size: 4cqw;
+  box-shadow: 0 0 0 1cqw var(--pink);
+  z-index: 5;
+}
+
+/* 모달 내용 */
+.matchup { text-align: center; font-weight: 700; margin: 0 0 12px; font-size: 16px; }
+.matchup .p1 { color: var(--p1); }
+.matchup .p2 { color: var(--p2); }
+.game-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  margin: 12px 4px;
+  text-decoration: none;
+  color: var(--ink);
+  background: #fff;
+  transition: transform .06s steps(2);
+}
+.game-card:hover { background: #fff0f5; transform: translateY(-3px); }
+.game-card .g-emoji { font-size: 42px; }
+.game-card b { display: block; font-size: 19px; margin-bottom: 4px; }
+.game-card small { color: #6b5c85; font-size: 13px; line-height: 1.5; }
+
+.rank-list, .recent, .coin-list { list-style: none; padding: 0; margin: 0; }
+.rank-list li, .coin-list li {
+  display: grid;
+  grid-template-columns: 30px 44px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  margin: 8px 3px;
+  background: #fff;
+  box-shadow: 0 0 0 3px var(--line);
+}
+.coin-list li { grid-template-columns: 44px 1fr auto; }
+.rank-list .rk { font-weight: 700; font-size: 18px; text-align: center; }
+.rank-list img, .coin-list img { height: 44px; width: 44px; object-fit: cover; object-position: top; }
+.rank-list .wl { font-size: 13px; color: #6b5c85; }
+.rank-list .w { font-weight: 700; color: var(--pink); font-size: 18px; }
+.coin-list .c { font-weight: 700; font-size: 18px; color: #b8860b; }
+.recent li { font-size: 13px; padding: 6px 2px; border-bottom: 2px dashed #e2d9ef; }
+.recent .empty, .rank-list .empty { color: #6b5c85; font-size: 14px; display: block; text-align: center; padding: 10px; }
+.small { font-size: 12px; color: #6b5c85; }
+.letter-paper { background: #fff3dc; }
+.letter-paper h3 { margin: 16px 0 6px; font-size: 17px; }
+.letter-paper ul { margin: 0; padding-left: 20px; line-height: 1.8; font-size: 14px; }
+.letter-paper p { font-size: 14px; line-height: 1.7; }
+
+@keyframes idle { 50% { transform: translateY(-.8cqw); } }

@@ -1,5 +1,5 @@
 // 얼굴 필터: Face Landmarker의 478개 점 위에 웃긴 그림을 그립니다.
-// (캔버스는 CSS로 좌우 반전되어 있어서, 원본 좌표 그대로 그리면 거울 화면과 맞습니다)
+// lm: 패널 기준으로 바꾼 점들 (x, y는 0~1)
 
 const pt = (lm, i, w, h) => ({ x: lm[i].x * w, y: lm[i].y * h });
 const mid = (a, b) => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
@@ -19,7 +19,8 @@ export function drawFilter(ctx, lm, name, w, h, t) {
   const R = mid(p(IDX.rightEyeInner), p(IDX.rightEyeOuter));
   const eyeW = dist(p(IDX.leftEyeOuter), p(IDX.leftEyeInner));
   const faceW = dist(p(IDX.faceLeft), p(IDX.faceRight));
-  const angle = Math.atan2(R.y - L.y, R.x - L.x);
+  let angle = Math.atan2(R.y - L.y, R.x - L.x);
+  if (Math.cos(angle) < 0) angle += Math.PI; // 거울 화면에서도 콧수염이 뒤집히지 않게
   const all = name === "all";
 
   if (name === "mustache" || all) mustache(ctx, mid(p(IDX.underNose), p(IDX.upperLip)), faceW * 0.5, angle);

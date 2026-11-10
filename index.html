@@ -3,122 +3,137 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>포커페이스 챌린지</title>
-  <link rel="stylesheet" href="style.css" />
+  <title>FACE FRIENDS</title>
+  <link rel="stylesheet" href="shared/ui.css" />
+  <link rel="stylesheet" href="home.css" />
+</head>
+<body>
+  <main class="phone" id="phone">
+    <!-- 상단: 하트 / 트로피 / 설정 -->
+    <button class="icon-btn hearts-btn" id="btn-hearts" title="하트 개수 (설정)">
+      <div class="hearts" id="home-hearts"></div>
+    </button>
+    <button class="icon-btn trophy" id="btn-trophy" title="기록"><img class="px" src="shared/assets/trophy.png" alt="기록" /></button>
+    <button class="icon-btn gear" id="btn-gear" title="설정"><img class="px" src="shared/assets/gear.png" alt="설정" /></button>
+
+    <!-- 가운데: 캐릭터 선택 -->
+    <div class="carousel" id="carousel">
+      <button class="slot left" data-slot="left"><img class="item px" alt="" /><img class="char px" alt="" /></button>
+      <button class="slot center" data-slot="center"><img class="item px" alt="" /><img class="char px" alt="" /></button>
+      <button class="slot right" data-slot="right"><img class="item px" alt="" /><img class="char px" alt="" /></button>
+    </div>
+
+    <button class="icon-btn arrow left" id="btn-prev" title="이전 캐릭터"><img class="px" src="shared/assets/arrow_l.png" alt="←" /></button>
+    <div class="char-name" id="char-name">LILY</div>
+    <button class="icon-btn arrow right" id="btn-next" title="다음 캐릭터"><img class="px" src="shared/assets/arrow_r.png" alt="→" /></button>
+
+    <div class="players" id="players">
+      <button class="ptab" data-p="p1"><span class="tag">P1</span><span class="nm"></span></button>
+      <span class="vs">VS</span>
+      <button class="ptab" data-p="p2"><span class="tag">P2</span><span class="nm"></span></button>
+    </div>
+
+    <button class="icon-btn start-btn" id="btn-start"><img class="px" src="shared/assets/start.png" alt="START" /></button>
+
+    <!-- 하단: 편지(게임 방법) / 지갑(코인) -->
+    <button class="icon-btn letter" id="btn-letter" title="게임 방법"><img class="px" src="shared/assets/letter.png" alt="게임 방법" /></button>
+    <button class="icon-btn wallet" id="btn-wallet" title="코인">
+      <img class="px" src="shared/assets/wallet.png" alt="코인" />
+      <span class="coin-badge" id="coin-badge">0</span>
+    </button>
+
+    <p class="file-warning" id="file-warning" hidden>⚠️ start.bat으로 실행해야<br />카메라가 켜져요!</p>
+  </main>
+
+  <!-- 게임 선택 -->
+  <div class="modal-back" id="m-games">
+    <div class="modal pixel-box">
+      <button class="close" data-close>✕</button>
+      <h2>🎮 게임 선택</h2>
+      <p class="matchup" id="matchup"></p>
+      <a class="game-card pixel-box" href="pokerface/">
+        <span class="g-emoji">😐</span>
+        <span class="g-text"><b>포커페이스 챌린지</b><small>웃음·깜빡임 참기 1:1 · 먼저 하트를 다 잃으면 패배</small></span>
+      </a>
+      <a class="game-card pixel-box" href="snowball/">
+        <span class="g-emoji">☃️</span>
+        <span class="g-text"><b>눈덩이 대작전</b><small>눈 받아서 굴려서 던지기 1:1 · 맞으면 하트 -1</small></span>
+      </a>
+    </div>
+  </div>
+
+  <!-- 설정 -->
+  <div class="modal-back" id="m-settings">
+    <div class="modal pixel-box">
+      <button class="close" data-close>✕</button>
+      <h2><img class="px" src="shared/assets/gear.png" alt="" /> 설정</h2>
+      <div class="row-label">하트 개수 (두 게임 공통)</div>
+      <div class="pick" data-key="hearts"><button data-v="1">♥ 1</button><button data-v="3">♥ 3</button><button data-v="5">♥ 5</button></div>
+      <div class="row-label">효과음</div>
+      <div class="pick" data-key="sound"><button data-v="true">켜기</button><button data-v="false">끄기</button></div>
+      <div class="row-label">😐 포커페이스 모드</div>
+      <div class="pick" data-key="pfMode"><button data-v="mix">혼합</button><button data-v="smile">웃음 참기</button><button data-v="blink">눈싸움</button></div>
+      <div class="row-label">😐 포커페이스 난이도</div>
+      <div class="pick" data-key="pfDiff"><button data-v="easy">쉬움</button><button data-v="normal">보통</button><button data-v="hard">어려움</button></div>
+      <div class="row-label">☃️ 눈덩이 라운드 시간</div>
+      <div class="pick" data-key="snowTime"><button data-v="45">45초</button><button data-v="60">60초</button><button data-v="90">90초</button></div>
+      <div class="row-label">기록</div>
+      <button class="pixel-btn white small" id="btn-reset">기록·코인 초기화</button>
+    </div>
+  </div>
+
+  <!-- 기록 -->
+  <div class="modal-back" id="m-trophy">
+    <div class="modal pixel-box">
+      <button class="close" data-close>✕</button>
+      <h2><img class="px" src="shared/assets/trophy.png" alt="" /> 기록</h2>
+      <ol class="rank-list" id="rank-list"></ol>
+      <div class="row-label">최근 경기</div>
+      <ul class="recent" id="recent"></ul>
+    </div>
+  </div>
+
+  <!-- 게임 방법 -->
+  <div class="modal-back" id="m-letter">
+    <div class="modal pixel-box letter-paper">
+      <button class="close" data-close>✕</button>
+      <h2><img class="px" src="shared/assets/letter.png" alt="" /> 게임 방법</h2>
+      <p>친구랑 <b>카메라 앞에 나란히</b> 서거나 앉아요. 화면 <b>왼쪽이 P1</b>, <b>오른쪽이 P2</b>예요.</p>
+      <h3>😐 포커페이스 챌린지</h3>
+      <ul>
+        <li>양쪽에 각자 얼굴이 크게 떠요</li>
+        <li>웃거나 눈을 깜빡이면 <b>하트 -1</b></li>
+        <li>방해 요소(이모지, 아재개그, 얼굴 필터, 효과음)가 점점 세져요</li>
+        <li>하트를 먼저 다 잃는 사람이 패배!</li>
+      </ul>
+      <h3>☃️ 눈덩이 대작전</h3>
+      <ul>
+        <li>❄️ 내리는 눈에 손을 대서 받기</li>
+        <li>🌀 손을 빙글빙글 돌려 눈덩이 키우기</li>
+        <li>💨 친구 쪽으로 팔을 휙! 휘둘러 던지기</li>
+        <li>😎 내 얼굴에 빨간 조준점이 뜨면 피하기 · 맞으면 하트 -1</li>
+      </ul>
+      <p class="small">💡 카메라에서 2~3m 떨어져야 손까지 잘 보여요. 게임 중 D 키를 누르면 인식 값이 보여요.</p>
+    </div>
+  </div>
+
+  <!-- 코인 -->
+  <div class="modal-back" id="m-wallet">
+    <div class="modal pixel-box">
+      <button class="close" data-close>✕</button>
+      <h2><img class="px" src="shared/assets/wallet.png" alt="" /> 지갑</h2>
+      <ul class="coin-list" id="coin-list"></ul>
+      <p class="small">승리 +10 · 참가 +2 코인</p>
+    </div>
+  </div>
+
   <script>
-    // file:// 로 열면 모듈 스크립트와 카메라가 동작하지 않아서 안내를 띄웁니다.
     if (location.protocol === "file:") {
       document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("file-warning").hidden = false;
-        document.getElementById("btn-start").disabled = true;
       });
     }
   </script>
-</head>
-<body>
-  <div id="app">
-    <!-- 시작 화면 -->
-    <section id="screen-home" class="screen active">
-      <h1>😐 포커페이스 챌린지</h1>
-      <p class="sub">웃지도 말고, 눈도 깜빡이지 말고 버텨라!</p>
-
-      <p id="file-warning" class="warning" hidden>
-        ⚠️ 파일을 더블클릭해서 열면 카메라가 켜지지 않아요.<br />
-        폴더 안의 <b>start.bat</b>을 실행해서 열어주세요.
-      </p>
-
-      <div class="card">
-        <label class="field">
-          <span>닉네임</span>
-          <input id="nickname" maxlength="12" placeholder="예: 현서" autocomplete="off" />
-        </label>
-
-        <div class="field">
-          <span>모드</span>
-          <div class="seg" id="mode-seg">
-            <button data-mode="mix" class="on">😐 혼합</button>
-            <button data-mode="smile">😂 웃음 참기</button>
-            <button data-mode="blink">👁️ 눈싸움</button>
-          </div>
-        </div>
-
-        <div class="field">
-          <span>난이도</span>
-          <div class="seg" id="diff-seg">
-            <button data-diff="easy">쉬움</button>
-            <button data-diff="normal" class="on">보통</button>
-            <button data-diff="hard">어려움</button>
-          </div>
-        </div>
-
-        <label class="check"><input type="checkbox" id="sound" checked /> 효과음 켜기</label>
-      </div>
-
-      <button id="btn-start" class="primary">게임 시작</button>
-      <button id="btn-board" class="ghost">🏆 순위표</button>
-
-      <ul class="rules">
-        <li>😂 웃으면 탈락 · 😑 눈 깜빡이면 탈락 · 🙈 얼굴이 1초 넘게 사라져도 탈락</li>
-        <li>시간이 지날수록 방해 요소가 점점 세져요 (이모지 → 아재개그 → 얼굴 필터 → 효과음)</li>
-        <li>친구 대결: 한 판 끝나면 <b>다음 사람</b>을 눌러 차례로 도전!</li>
-      </ul>
-      <p class="hint">카메라 영상은 이 컴퓨터 안에서만 처리되고 어디에도 저장되지 않아요.</p>
-      <a class="link" href="snowball/">☃️ 게임 3: 눈덩이 대작전 →</a>
-    </section>
-
-    <!-- 게임 화면 -->
-    <section id="screen-game" class="screen">
-      <div class="stage" id="stage">
-        <video id="video" playsinline muted></video>
-        <canvas id="overlay"></canvas>
-        <div id="distractions"></div>
-        <div id="hud">
-          <div id="timer">0.0</div>
-          <div class="gauges">
-            <div class="gauge" id="g-smile"><span>😂 웃음</span><div class="bar"><i></i></div></div>
-            <div class="gauge" id="g-blink"><span>👁️ 눈</span><div class="bar"><i></i></div></div>
-          </div>
-        </div>
-        <div id="center-msg"></div>
-        <div id="debug" hidden></div>
-      </div>
-      <div class="game-actions">
-        <button id="btn-quit" class="ghost small">처음으로</button>
-        <span class="hint">D 키: 인식 값 보기</span>
-      </div>
-    </section>
-
-    <!-- 결과 화면 -->
-    <section id="screen-result" class="screen">
-      <h2 id="result-title"></h2>
-      <div id="result-time"></div>
-      <div id="result-badge"></div>
-      <div id="result-rank"></div>
-      <img id="result-shot" alt="탈락 순간" />
-      <div class="row">
-        <button id="btn-again" class="primary">다시 하기</button>
-        <button id="btn-next" class="ghost">다음 사람</button>
-        <button id="btn-result-board" class="ghost">🏆 순위표</button>
-      </div>
-      <a id="btn-save-shot" class="link" download="pokerface.jpg">📸 탈락 순간 저장하기</a>
-    </section>
-
-    <!-- 순위표 화면 -->
-    <section id="screen-board" class="screen">
-      <h2>🏆 순위표</h2>
-      <div class="seg" id="board-seg">
-        <button data-board="mix" class="on">😐 혼합</button>
-        <button data-board="smile">😂 웃음 참기</button>
-        <button data-board="blink">👁️ 눈싸움</button>
-      </div>
-      <ol id="board-list"></ol>
-      <div class="row">
-        <button id="btn-board-back" class="primary">처음으로</button>
-        <button id="btn-board-clear" class="ghost small">기록 지우기</button>
-      </div>
-    </section>
-  </div>
-
-  <script type="module" src="src/main.js"></script>
+  <script type="module" src="home.js"></script>
 </body>
 </html>
